@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, Send, Lock, History, MessageCircle, Loader2, Sparkles } from "lucide-react"
+import { ChevronLeft, Send, Lock, History, MessageCircle, Loader2, Sparkles, RefreshCw } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/services/api"
 
@@ -15,6 +15,7 @@ export function Question() {
   const [history, setHistory] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRerolling, setIsRerolling] = useState(false)
 
   const loadQuestionData = async () => {
     setIsLoading(true)
@@ -49,32 +50,52 @@ export function Question() {
     loadQuestionData()
   }, [])
 
+  const handleRerollQuestion = async () => {
+    if (isRerolling || answered) return
+    setIsRerolling(true)
+    try {
+      const newQ = await api.rerollTodayQuestion(todayQuestion?.id)
+      if (newQ) {
+        setTodayQuestion((prev: any) => ({
+          ...prev,
+          id: newQ.id,
+          questionText: newQ.questionText,
+          category: newQ.category,
+          isAiGenerated: newQ.isAiGenerated,
+          myAnswer: null,
+          partnerAnswer: null,
+          isBothAnswered: false
+        }))
+        setAnswer("")
+        setAnswered(false)
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to reroll question")
+    } finally {
+      setIsRerolling(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!answer.trim() || !todayQuestion?.id) return
+    if (!answer.trim() || !todayQuestion?.id || isSubmitting) return
 
     setIsSubmitting(true)
     try {
-      const res: any = await api.answerQuestion(todayQuestion.id, answer.trim())
+      await api.answerQuestion(todayQuestion.id, answer.trim())
       setAnswered(true)
-      setTodayQuestion((prev: any) => ({
-        ...prev,
-        myAnswer: { answerText: answer.trim(), answeredAt: new Date().toISOString() },
-        isBothAnswered: res?.isBothAnswered || prev?.isBothAnswered
-      }))
-      
-      const hRes = await api.getQuestionHistory().catch(() => [])
-      if (Array.isArray(hRes)) setHistory(hRes)
+      loadQuestionData()
     } catch (err: any) {
-      console.warn("Failed to submit answer:", err.message)
+      alert(err.message || "Failed to submit answer")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-24 select-none">
-      <header className="p-6 pt-12 pb-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/30">
+    <div className="flex flex-col min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="p-6 pt-12 pb-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/40">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="-ml-2 text-text-secondary hover:text-text-primary">
             <ChevronLeft className="w-6 h-6" />
@@ -110,16 +131,33 @@ export function Question() {
           todayQuestion ? (
             <>
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-semibold tracking-wider text-primary uppercase block">
-                    Today's Prompt (Day #{todayQuestion.dayNumber})
-                  </span>
-                  {todayQuestion.isAiGenerated && (
-                    <span className="text-[10px] font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
-                      <Sparkles className="w-3 h-3" /> AI Generated
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold tracking-wider text-primary uppercase block">
+                      Today's Prompt (Day #{todayQuestion.dayNumber})
                     </span>
+                    {todayQuestion.isAiGenerated && (
+                      <span className="text-[10px] font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                        <Sparkles className="w-3 h-3" /> AI Generated
+                      </span>
+                    )}
+                  </div>
+
+                  {!answered && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRerollQuestion}
+                      disabled={isRerolling}
+                      className="text-[11px] h-7 px-2.5 rounded-full border-border/60 text-text-secondary hover:text-primary hover:border-primary/40 font-medium"
+                      title="Reroll/Ganti Pertanyaan Hari Ini 🎲"
+                    >
+                      {isRerolling ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                      Ganti Pertanyaan 🎲
+                    </Button>
                   )}
                 </div>
+
                 <h2 className="text-2xl font-bold text-text-primary leading-tight">
                   {todayQuestion.questionText}
                 </h2>
@@ -134,90 +172,109 @@ export function Question() {
                   <textarea 
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Type your answer here..."
-                    className="flex-1 w-full min-h-[160px] bg-surface border border-border/50 rounded-2xl p-4 text-text-primary placeholder:text-text-disabled focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none shadow-sm"
+                    placeholder="Write your honest, heart-felt answer here..."
+                    className="w-full flex-1 min-h-[160px] p-4 bg-surface border border-border/50 rounded-2xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/60 transition-colors resize-none shadow-sm text-sm"
+                    required
                   />
-                  <Button type="submit" disabled={!answer.trim() || isSubmitting} className="mt-4 w-full h-12 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover disabled:opacity-50 transition-all">
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                    Lock Answer
-                  </Button>
+                  <div className="pt-4">
+                    <Button 
+                      type="submit" 
+                      disabled={!answer.trim() || isSubmitting}
+                      className="w-full h-12 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition-all shadow-md"
+                    >
+                      {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                      Submit My Answer
+                    </Button>
+                  </div>
                 </motion.form>
               ) : (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                  className="space-y-4"
-                >
-                  <Card className="bg-primary/10 border-primary/20 shadow-none">
-                    <CardContent className="p-4">
-                      <span className="text-xs font-medium text-primary mb-1 block">You</span>
-                      <p className="text-sm text-text-primary">{answer}</p>
-                    </CardContent>
-                  </Card>
-
-                  {todayQuestion.partnerAnswer ? (
-                    <Card className="bg-secondary/10 border-secondary/20 shadow-none">
-                      <CardContent className="p-4">
-                        <span className="text-xs font-medium text-secondary mb-1 block">
-                          Partner ({todayQuestion.partnerAnswer.partnerName || "Partner"})
+                <div className="space-y-4 flex-1">
+                  {/* My Answer */}
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Card className="bg-primary/10 border-primary/30 shadow-md">
+                      <CardContent className="p-4 space-y-2">
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
+                          Your Answer
                         </span>
-                        <p className="text-sm text-text-primary">{todayQuestion.partnerAnswer.answerText}</p>
+                        <p className="text-sm text-text-primary">{todayQuestion.myAnswer?.answerText}</p>
                       </CardContent>
                     </Card>
-                  ) : (
-                    <Card className="bg-surfaceVariant/50 border-dashed border-border shadow-none flex flex-col items-center justify-center p-8 text-center">
-                      <Lock className="w-8 h-8 text-text-disabled mb-3" />
-                      <h3 className="text-sm font-medium text-text-secondary">Waiting for Partner</h3>
-                      <p className="text-xs text-text-tertiary mt-1">Their answer will be revealed once they submit.</p>
-                    </Card>
-                  )}
-                </motion.div>
+                  </motion.div>
+
+                  {/* Partner's Answer */}
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                    {todayQuestion.partnerAnswer ? (
+                      <Card className="bg-secondary/10 border-secondary/30 shadow-md">
+                        <CardContent className="p-4 space-y-2">
+                          <span className="text-[10px] font-bold text-secondary uppercase tracking-wider block">
+                            {todayQuestion.partnerAnswer.partnerName}'s Answer
+                          </span>
+                          <p className="text-sm text-text-primary">{todayQuestion.partnerAnswer.answerText}</p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card className="bg-surfaceVariant/40 border border-dashed border-border/60 p-6 text-center space-y-2 rounded-2xl">
+                        <div className="w-10 h-10 rounded-full bg-surfaceVariant flex items-center justify-center text-text-tertiary mx-auto">
+                          <Lock className="w-5 h-5" />
+                        </div>
+                        <h4 className="font-semibold text-sm text-text-primary">Waiting for Partner...</h4>
+                        <p className="text-xs text-text-tertiary max-w-xs mx-auto">
+                          Your partner hasn't answered today's prompt yet. Once they submit their answer, theirs will be unlocked!
+                        </p>
+                      </Card>
+                    )}
+                  </motion.div>
+                </div>
               )}
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center space-y-3">
-              <Sparkles className="w-10 h-10 text-text-tertiary" />
-              <h3 className="text-base font-semibold text-text-primary">No Question Available</h3>
-              <p className="text-xs text-text-secondary max-w-xs">
-                Check back later for today's daily question or connect with your partner first.
-              </p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
+              <p className="text-xs text-text-tertiary">No prompt available right now.</p>
             </div>
           )
         ) : (
-          /* Question History View */
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">Past Answers</h3>
-            
+          /* History Mode */
+          <div className="space-y-4 pb-8">
+            <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">
+              Past Questions & Unlocked Answers
+            </h3>
             {history.length > 0 ? (
-              history.map((item: any) => (
-                <Card key={item.id || item.questionId} className="bg-surface border-border/50 shadow-sm">
-                  <CardContent className="p-4 space-y-3">
-                    <h4 className="font-semibold text-sm text-text-primary">{item.questionText}</h4>
-                    
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/30 text-xs">
-                      <div className="bg-surfaceVariant/40 p-2.5 rounded-xl">
-                        <span className="text-[10px] font-semibold text-primary block mb-0.5">You</span>
-                        <p className="text-text-secondary font-medium">
-                          {item.myAnswer?.answerText ? item.myAnswer.answerText : "Not answered"}
-                        </p>
+              history.map((item) => (
+                <Card key={item.id} className="bg-surface border-border/50 shadow-sm p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
+                      Answered
+                    </span>
+                    {item.isAiGenerated && (
+                      <span className="text-[10px] font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> AI
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-sm text-text-primary leading-snug">{item.questionText}</h4>
+                  
+                  <div className="grid grid-cols-1 gap-2 pt-1">
+                    {item.myAnswer && (
+                      <div className="bg-primary/5 border border-primary/20 p-2.5 rounded-xl text-xs">
+                        <span className="font-semibold text-primary block text-[10px] uppercase">You</span>
+                        <p className="text-text-primary mt-0.5">{item.myAnswer.answerText}</p>
                       </div>
-                      <div className="bg-surfaceVariant/40 p-2.5 rounded-xl">
-                        <span className="text-[10px] font-semibold text-secondary block mb-0.5">
-                          {item.partnerAnswer?.partnerName || "Partner"}
-                        </span>
-                        <p className="text-text-secondary font-medium">
-                          {item.partnerAnswer?.answerText ? item.partnerAnswer.answerText : "Not answered"}
-                        </p>
+                    )}
+                    {item.partnerAnswer && (
+                      <div className="bg-secondary/5 border border-secondary/20 p-2.5 rounded-xl text-xs">
+                        <span className="font-semibold text-secondary block text-[10px] uppercase">{item.partnerAnswer.partnerName}</span>
+                        <p className="text-text-primary mt-0.5">{item.partnerAnswer.answerText}</p>
                       </div>
-                    </div>
-                  </CardContent>
+                    )}
+                  </div>
                 </Card>
               ))
             ) : (
               <div className="bg-surfaceVariant/30 border border-dashed border-border/50 rounded-2xl p-8 text-center text-xs text-text-tertiary">
-                No past questions answered yet.
+                No past answered questions history yet.
               </div>
             )}
-          </motion.div>
+          </div>
         )}
       </main>
     </div>

@@ -187,6 +187,13 @@ class ApiClient {
     return this.request<any>("/questions/today")
   }
 
+  async rerollTodayQuestion(currentQuestionId?: string) {
+    return this.request<any>("/questions/today/reroll", {
+      method: "POST",
+      body: JSON.stringify({ currentQuestionId }),
+    })
+  }
+
   async answerQuestion(questionId: string, answerText: string) {
     return this.request(`/questions/${questionId}/answer`, {
       method: "POST",

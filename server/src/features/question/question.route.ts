@@ -111,6 +111,54 @@ export class QuestionService {
     }
   }
 
+  static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, currentQuestionIdStr?: string) {
+    const answered = await prisma.questionAnswer.findMany({
+      where: { relationshipId },
+      select: { questionId: true }
+    })
+    const answeredIds = Array.from(new Set(answered.map(a => a.questionId)))
+    
+    if (currentQuestionIdStr) {
+      try {
+        answeredIds.push(BigInt(currentQuestionIdStr))
+      } catch (e) {}
+    }
+
+    // Find next un-answered active question
+    let question = await prisma.question.findFirst({
+      where: {
+        isActive: true,
+        id: { notIn: answeredIds.length > 0 ? answeredIds : [0n] }
+      }
+    })
+
+    // If no un-answered questions left, generate fresh question via Gemini AI!
+    if (!question) {
+      console.log("🤖 [AI Hybrid] Rerolling question: Generating fresh question via Gemini AI...")
+      const aiData = await AiService.generateRomanticQuestion()
+      
+      question = await prisma.question.create({
+        data: {
+          questionText: aiData.questionText,
+          category: aiData.category || "AI Generated",
+          isActive: true
+        }
+      })
+    }
+
+    const isAiGenerated = question.category?.includes("AI") || false
+
+    return {
+      id: question.id.toString(),
+      questionText: question.questionText,
+      category: question.category,
+      isAiGenerated,
+      myAnswer: null,
+      partnerAnswer: null,
+      isBothAnswered: false
+    }
+  }
+
   static async submitAnswer(questionIdStr: string, relationshipId: bigint, userId: bigint, answerText: string) {
     const questionId = BigInt(questionIdStr)
 
@@ -219,6 +267,14 @@ export class QuestionController {
     return ApiResponse.success(res, "Today's question retrieved.", data)
   }
 
+  static reroll = async (req: RelationshipRequest, res: Response) => {
+    const relationshipId = req.relationshipId!
+    const userId = BigInt(req.user!.userId)
+    const { currentQuestionId } = req.body
+    const data = await QuestionService.rerollTodayQuestion(relationshipId, userId, currentQuestionId)
+    return ApiResponse.success(res, "Question rerolled to a fresh prompt! 🎲✨", data)
+  }
+
   static answer = async (req: RelationshipRequest, res: Response) => {
     const relationshipId = req.relationshipId!
     const userId = BigInt(req.user!.userId)
@@ -241,6 +297,7 @@ router.use(authenticate)
 router.use(authorizeRelationship)
 
 router.get("/today", asyncHandler(QuestionController.today))
+router.post("/today/reroll", asyncHandler(QuestionController.reroll))
 router.post("/:id/answer", asyncHandler(QuestionController.answer))
 router.get("/history", asyncHandler(QuestionController.history))
 
