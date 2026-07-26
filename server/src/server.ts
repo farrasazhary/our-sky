@@ -5,7 +5,7 @@ import app from "./app"
 import { prisma } from "./config/database"
 import { initScheduler } from "./scheduler"
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5050
 
 async function main() {
   try {
