@@ -80,9 +80,28 @@ export class QuestionService {
   }
 
   /**
-   * Rerolls today's question by generating a brand new Gemini AI question on demand
+   * Rerolls today's question by generating a brand new Gemini AI question on demand.
+   * Locked if EITHER partner has already submitted an answer.
    */
-  static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, _currentQuestionIdStr?: string) {
+  static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, currentQuestionIdStr?: string) {
+    if (currentQuestionIdStr) {
+      try {
+        const qId = BigInt(currentQuestionIdStr)
+        const existingAnswersCount = await prisma.questionAnswer.count({
+          where: {
+            questionId: qId,
+            relationshipId
+          }
+        })
+
+        if (existingAnswersCount > 0) {
+          throw new AppError("Pertanyaan tidak dapat diganti karena sudah ada pasangan yang menjawab.", 400)
+        }
+      } catch (e: any) {
+        if (e instanceof AppError) throw e
+      }
+    }
+
     console.log("🤖 [Gemini AI] Rerolling question on-demand via Gemini AI...")
     const aiData = await AiService.generateRomanticQuestion()
     

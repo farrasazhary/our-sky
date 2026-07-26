@@ -150,7 +150,7 @@ export function Question() {
                     )}
                   </div>
 
-                  {!answered && (
+                  {!todayQuestion?.myAnswer && !todayQuestion?.partnerAnswer && (
                     <Button
                       variant="outline"
                       size="sm"
