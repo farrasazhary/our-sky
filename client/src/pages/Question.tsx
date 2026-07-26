@@ -110,9 +110,16 @@ export function Question() {
           todayQuestion ? (
             <>
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <span className="text-xs font-semibold tracking-wider text-primary uppercase mb-2 block">
-                  Today's Prompt (Day #{todayQuestion.dayNumber})
-                </span>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="text-xs font-semibold tracking-wider text-primary uppercase block">
+                    Today's Prompt (Day #{todayQuestion.dayNumber})
+                  </span>
+                  {todayQuestion.isAiGenerated && (
+                    <span className="text-[10px] font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                      <Sparkles className="w-3 h-3" /> AI Generated
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-2xl font-bold text-text-primary leading-tight">
                   {todayQuestion.questionText}
                 </h2>

@@ -8,6 +8,7 @@ import { AppError } from "../../shared/errors/AppError"
 import { RelationshipEventService } from "../relationship-event/relationshipEvent.service"
 import { EVENT_TYPES } from "../../shared/constants/eventTypes"
 import { NotificationService } from "../notification/notification.route"
+import { AiService } from "../ai/ai.service"
 import { z } from "zod"
 
 const answerSchema = z.object({
@@ -15,16 +16,16 @@ const answerSchema = z.object({
 })
 
 const DEFAULT_QUESTIONS = [
-  "What is a small habit of mine that you secretly love?",
-  "What was your first impression of me when we first met?",
-  "What is your favorite memory of us together this year?",
-  "What song always reminds you of me when you hear it?",
-  "If we could travel anywhere tomorrow, where would you want to go?",
-  "What is something I did recently that made you feel deeply loved?",
-  "What is your idea of a perfect weekend date together?",
-  "What dream do you want us to accomplish together in the next 5 years?",
-  "What is one thing you appreciate about our relationship the most?",
-  "What is a funny moment of us that still makes you laugh out loud?",
+  "Apa satu kebiasaan kecil dariku yang diam-diam paling kamu sukai?",
+  "Bagaimana kesan pertamamu saat pertama kali kita bertemu?",
+  "Apa kenangan paling berkesan dari hubungan kita sepanjang tahun ini?",
+  "Lagu apa yang selalu membuatmu teringat padaku saat mendengarnya?",
+  "Jika besok kita bisa liburan ke mana saja secara gratis, ke mana kamu ingin pergi?",
+  "Apa hal sederhana yang baru saja kubuat yang membuatmu merasa sangat dicintai?",
+  "Seperti apa gambaran kencan akhir pekan yang paling sempurna menurutmu?",
+  "Impian besar apa yang paling ingin kita capai bersama dalam 5 tahun ke depan?",
+  "Apa satu hal yang paling kamu syukuri dari hubungan kita saat ini?",
+  "Momen lucu apa tentang kita berdua yang sampai sekarang masih membuatmu tertawa?",
 ]
 
 export class QuestionService {
@@ -37,24 +38,43 @@ export class QuestionService {
 
     let count = await prisma.question.count({ where: { isActive: true } })
     
-    // Auto-seed questions if table is empty
+    // Auto-seed default questions if table is empty
     if (count === 0) {
       for (const qText of DEFAULT_QUESTIONS) {
         await prisma.question.create({
-          data: { questionText: qText, category: "General", isActive: true }
+          data: { questionText: qText, category: "Relationship", isActive: true }
         })
       }
       count = await prisma.question.count({ where: { isActive: true } })
     }
 
-    const questionOffset = (dayOfYear - 1) % count
-    const question = await prisma.question.findFirst({
-      where: { isActive: true },
-      skip: questionOffset
+    // Smart Anti-Repeat Tracking: Get questions already answered by this relationship
+    const answered = await prisma.questionAnswer.findMany({
+      where: { relationshipId },
+      select: { questionId: true }
+    })
+    const answeredIds = Array.from(new Set(answered.map(a => a.questionId)))
+
+    // Find first active question NOT yet answered by this relationship
+    let question = await prisma.question.findFirst({
+      where: {
+        isActive: true,
+        id: { notIn: answeredIds.length > 0 ? answeredIds : [0n] }
+      }
     })
 
+    // Hybrid AI Trigger: If ALL existing questions in database have been answered by this couple!
     if (!question) {
-      throw new AppError("Question not found.", 404)
+      console.log("🤖 [AI Hybrid] All native questions answered! Triggering Gemini AI for a fresh new question...")
+      const aiData = await AiService.generateRomanticQuestion()
+      
+      question = await prisma.question.create({
+        data: {
+          questionText: aiData.questionText,
+          category: aiData.category || "AI Generated",
+          isActive: true
+        }
+      })
     }
 
     const answers = await prisma.questionAnswer.findMany({
@@ -70,11 +90,13 @@ export class QuestionService {
     const myAnswer = answers.find(a => a.userId === userId)
     const partnerAnswer = answers.find(a => a.userId !== userId)
     const isBothAnswered = answers.length >= 2
+    const isAiGenerated = question.category?.includes("AI") || false
 
     return {
       id: question.id.toString(),
       questionText: question.questionText,
       category: question.category,
+      isAiGenerated,
       dayNumber: dayOfYear,
       myAnswer: myAnswer ? {
         answerText: myAnswer.answerText,
@@ -164,6 +186,7 @@ export class QuestionService {
           id: qId,
           questionId: qId,
           questionText: ans.question.questionText,
+          isAiGenerated: ans.question.category?.includes("AI") || false,
           myAnswer: null,
           partnerAnswer: null
         })

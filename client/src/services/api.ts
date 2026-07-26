@@ -297,6 +297,13 @@ class ApiClient {
     })
   }
 
+  async generateAiDateIdea(category: string = "ROMANTIC") {
+    return this.request<any>("/random-dates/ai-generate", {
+      method: "POST",
+      body: JSON.stringify({ category }),
+    })
+  }
+
   async proposeRandomDate(data: { title: string; category: string; duration?: string }) {
     return this.request("/random-dates/propose", {
       method: "POST",

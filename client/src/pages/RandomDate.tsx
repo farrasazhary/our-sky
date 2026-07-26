@@ -12,26 +12,27 @@ import {
   XCircle, 
   Clock, 
   Loader2, 
-  Send 
+  Send,
+  Sparkles 
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/services/api"
 
 const LOCAL_DATE_IDEAS = [
-  { title: "Cook a completely new recipe together", category: "Food & Drink", duration: "2 Hours" },
-  { title: "Go for a walk in a park you've never visited", category: "Outdoor", duration: "1 Hour" },
-  { title: "Build a blanket fort and watch a movie", category: "Cozy Home", duration: "3 Hours" },
-  { title: "Take a pottery or art class", category: "Creative", duration: "2 Hours" },
-  { title: "Have a picnic in the living room", category: "Cozy Home", duration: "1.5 Hours" },
-  { title: "Go stargazing on a clear night", category: "Outdoor", duration: "2 Hours" },
-  { title: "Bake chocolate chip cookies from scratch", category: "Cozy Home", duration: "1 Hour" }
+  { title: "Memasak resep makanan baru bersama", category: "Food & Drink", duration: "2 Jam", isAiGenerated: false },
+  { title: "Jalan santai di taman terbuka malam hari", category: "Outdoor", duration: "1 Jam", isAiGenerated: false },
+  { title: "Membuat benteng bantal di kamar & nonton film", category: "Cozy Home", duration: "3 Jam", isAiGenerated: false },
+  { title: "Mencoba kelas melukis atau kerajinan tangan berdua", category: "Creative", duration: "2 Jam", isAiGenerated: false },
+  { title: "Piknik santai dengan minuman favorit di ruang tamu", category: "Cozy Home", duration: "1.5 Jam", isAiGenerated: false },
+  { title: "Stargazing memandang bintang di tempat terbuka", category: "Outdoor", duration: "2 Jam", isAiGenerated: false },
+  { title: "Membuat kue kering bersama dari awal", category: "Cozy Home", duration: "1 Jam", isAiGenerated: false }
 ]
 
 export function RandomDate() {
   const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<"roll" | "history">("roll")
   const [ideaIndex, setIdeaIndex] = useState(0)
-  const [currentIdea, setCurrentIdea] = useState(LOCAL_DATE_IDEAS[0])
+  const [currentIdea, setCurrentIdea] = useState<any>(LOCAL_DATE_IDEAS[0])
   const [activeProposal, setActiveProposal] = useState<any | null>(null)
   const [history, setHistory] = useState<any[]>([])
   
@@ -51,7 +52,7 @@ export function RandomDate() {
         }
       }
     } catch (err) {
-      console.warn("Using offline random date status.")
+      console.warn("Failed to fetch date status:", err)
     } finally {
       setIsLoading(false)
     }
@@ -61,28 +62,36 @@ export function RandomDate() {
     fetchStatus()
   }, [])
 
-  const handleRoll = async () => {
+  const handleRoll = () => {
+    setIsRolling(true)
+    setTimeout(() => {
+      const nextIndex = (ideaIndex + 1) % LOCAL_DATE_IDEAS.length
+      setIdeaIndex(nextIndex)
+      setCurrentIdea(LOCAL_DATE_IDEAS[nextIndex])
+      setSkippedCount((prev) => prev + 1)
+      setIsRolling(false)
+    }, 250)
+  }
+
+  const handleGenerateAiIdea = async (category: string = "ROMANTIC") => {
     setIsRolling(true)
     try {
-      const res = await api.rollRandomDate()
-      if (res?.title) {
+      const aiIdea = await api.generateAiDateIdea(category)
+      if (aiIdea) {
         setCurrentIdea({
-          title: res.title,
-          category: res.category || "Date Idea",
-          duration: res.duration || "1-2 Hours",
+          id: aiIdea.id,
+          title: aiIdea.title,
+          category: aiIdea.category || "AI Generated ✨",
+          duration: aiIdea.duration || "2 Jam",
+          isAiGenerated: true
         })
-      } else {
-        const nextIdx = (ideaIndex + 1) % LOCAL_DATE_IDEAS.length
-        setIdeaIndex(nextIdx)
-        setCurrentIdea(LOCAL_DATE_IDEAS[nextIdx])
+        setSkippedCount((prev) => prev + 1)
       }
     } catch (err) {
-      const nextIdx = (ideaIndex + 1) % LOCAL_DATE_IDEAS.length
-      setIdeaIndex(nextIdx)
-      setCurrentIdea(LOCAL_DATE_IDEAS[nextIdx])
+      console.warn("AI Date Idea generation fallback:", err)
+      handleRoll()
     } finally {
       setIsRolling(false)
-      setSkippedCount((prev) => prev + 1)
     }
   }
 
@@ -92,7 +101,7 @@ export function RandomDate() {
       const res: any = await api.proposeRandomDate({
         title: currentIdea.title,
         category: currentIdea.category,
-        duration: currentIdea.duration,
+        duration: currentIdea.duration
       })
       if (res) {
         setActiveProposal({
@@ -100,18 +109,11 @@ export function RandomDate() {
           title: currentIdea.title,
           category: currentIdea.category,
           duration: currentIdea.duration,
-          isProposedByMe: true,
+          isProposedByMe: true
         })
       }
-    } catch (err) {
-      console.warn("Proposing date locally.")
-      setActiveProposal({
-        id: Date.now().toString(),
-        title: currentIdea.title,
-        category: currentIdea.category,
-        duration: currentIdea.duration,
-        isProposedByMe: true,
-      })
+    } catch (err: any) {
+      alert(err.message || "Failed to propose date")
     } finally {
       setIsSubmitting(false)
     }
@@ -250,7 +252,7 @@ export function RandomDate() {
               </motion.div>
             )}
 
-            {/* SCENARIO C: No active proposal -> Roll & Propose */}
+            {/* SCENARIO C: No active proposal -> Roll, AI Generate, & Propose */}
             {!activeProposal && (
               <>
                 <div className="flex items-center justify-center gap-2">
@@ -261,22 +263,38 @@ export function RandomDate() {
 
                 <AnimatePresence mode="wait">
                   <motion.div key={currentIdea.title} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-                    <Card className="bg-surface border-border/50 shadow-xl overflow-hidden p-6 space-y-4">
-                      <span className="text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full inline-block">
-                        {currentIdea.category}
-                      </span>
+                    <Card className="bg-surface border-border/50 shadow-xl overflow-hidden p-6 space-y-4 relative">
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full inline-block">
+                          {currentIdea.category}
+                        </span>
+                        {currentIdea.isAiGenerated && (
+                          <span className="text-[10px] font-bold text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> AI Created
+                          </span>
+                        )}
+                      </div>
                       <h2 className="text-2xl font-extrabold text-text-primary leading-snug">
                         "{currentIdea.title}"
                       </h2>
-                      <p className="text-xs text-text-tertiary">Estimated Duration: {currentIdea.duration}</p>
+                      <p className="text-xs text-text-tertiary">Estimated: {currentIdea.duration}</p>
                     </Card>
                   </motion.div>
                 </AnimatePresence>
 
+                {/* AI Surprise Date Generator Trigger Button */}
+                <Button
+                  onClick={() => handleGenerateAiIdea("ROMANTIC")}
+                  disabled={isRolling || isSubmitting}
+                  className="w-full h-11 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold shadow-md flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" /> AI Surprise Date Generator 🤖✨
+                </Button>
+
                 <div className="flex gap-3">
-                  <Button onClick={handleRoll} disabled={isRolling || isSubmitting} variant="outline" className="flex-1 h-12 rounded-2xl border-border/60 text-xs">
+                  <Button onClick={handleRoll} disabled={isRolling || isSubmitting} variant="outline" className="flex-1 h-12 rounded-2xl border-border/60 text-xs font-semibold">
                     {isRolling ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <SkipForward className="w-4 h-4 mr-2" />}
-                    Skip Idea
+                    Next Idea
                   </Button>
                   <Button onClick={handlePropose} disabled={isSubmitting} className="flex-1 h-12 rounded-2xl bg-secondary text-white text-xs font-semibold shadow-md">
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}

@@ -5,23 +5,35 @@ import { ApiResponse } from "../../shared/responses/ApiResponse"
 import { asyncHandler } from "../../shared/utils/asyncHandler"
 import { RelationshipEventService } from "../relationship-event/relationshipEvent.service"
 import { NotificationService } from "../notification/notification.route"
+import { AiService } from "../ai/ai.service"
 import { prisma } from "../../config/database"
 import { EVENT_TYPES } from "../../shared/constants/eventTypes"
 
 const DATE_IDEAS = [
-  { id: 1, title: "Cook a completely new recipe together", category: "Food & Drink", duration: "2 Hours" },
-  { id: 2, title: "Go for a walk in a park you've never visited", category: "Outdoor", duration: "1 Hour" },
-  { id: 3, title: "Build a blanket fort and watch a movie", category: "Cozy Home", duration: "3 Hours" },
-  { id: 4, title: "Take a pottery or art class", category: "Creative", duration: "2 Hours" },
-  { id: 5, title: "Have a picnic in the living room", category: "Cozy Home", duration: "1.5 Hours" },
-  { id: 6, title: "Go stargazing on a clear night", category: "Outdoor", duration: "2 Hours" },
-  { id: 7, title: "Bake chocolate chip cookies from scratch", category: "Cozy Home", duration: "1 Hour" }
+  { id: 1, title: "Memasak resep makanan baru bersama", category: "Food & Drink", duration: "2 Jam" },
+  { id: 2, title: "Jalan santai di taman terbuka malam hari", category: "Outdoor", duration: "1 Jam" },
+  { id: 3, title: "Membuat benteng bantal di kamar & nonton film", category: "Cozy Home", duration: "3 Jam" },
+  { id: 4, title: "Mencoba kelas melukis atau kerajinan tangan berdua", category: "Creative", duration: "2 Jam" },
+  { id: 5, title: "Piknik santai dengan minuman favorit di ruang tamu", category: "Cozy Home", duration: "1.5 Jam" },
+  { id: 6, title: "Stargazing memandang bintang di tempat terbuka", category: "Outdoor", duration: "2 Jam" },
+  { id: 7, title: "Membuat kue kering bersama dari awal", category: "Cozy Home", duration: "1 Jam" }
 ]
 
 export class RandomDateService {
   static async rollIdea() {
     const randomIndex = Math.floor(Math.random() * DATE_IDEAS.length)
     return DATE_IDEAS[randomIndex]
+  }
+
+  static async generateAiDateIdea(category: string = "ROMANTIC") {
+    const aiIdea = await AiService.generateCustomDateIdea(category)
+    return {
+      id: `ai-${Date.now()}`,
+      title: aiIdea.title,
+      category: aiIdea.category,
+      duration: aiIdea.estimatedBudget || "2 Jam",
+      isAiGenerated: true
+    }
   }
 
   static async getStatus(relationshipId: bigint, userId: bigint) {
@@ -221,6 +233,12 @@ export class RandomDateController {
     return ApiResponse.success(res, "Random date idea rolled.", idea)
   }
 
+  static generateAi = async (req: RelationshipRequest, res: Response) => {
+    const { category } = req.body
+    const aiIdea = await RandomDateService.generateAiDateIdea(category || "ROMANTIC")
+    return ApiResponse.success(res, "AI Date idea generated successfully. ✨", aiIdea)
+  }
+
   static propose = async (req: RelationshipRequest, res: Response) => {
     const relationshipId = req.relationshipId!
     const userId = BigInt(req.user!.userId)
@@ -262,6 +280,7 @@ router.use(authorizeRelationship)
 
 router.get("/status", asyncHandler(RandomDateController.getStatus))
 router.get("/roll", asyncHandler(RandomDateController.roll))
+router.post("/ai-generate", asyncHandler(RandomDateController.generateAi))
 router.post("/propose", asyncHandler(RandomDateController.propose))
 
 // Flexible routing aliases for approve & decline/cancel
