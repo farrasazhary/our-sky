@@ -6,9 +6,10 @@
 
 echo "🚀 Starting OurSky Production Deployment..."
 
-# 1. Pull latest code from GitHub main branch
-echo "📥 Pulling latest changes from GitHub..."
-git pull origin main
+# 1. Pull & Force Sync latest code from GitHub main branch
+echo "📥 Force syncing latest changes from GitHub..."
+git fetch origin main
+git reset --hard origin/main
 
 # 2. Build Backend Server
 echo "⚙️ Building Backend Server..."
