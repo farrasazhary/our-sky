@@ -2,7 +2,7 @@ import { useState, useRef } from "react"
 import { BottomSheet } from "@/components/BottomSheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ImagePlus, Upload, X, Loader2, Calendar } from "lucide-react"
+import { Camera, ImagePlus, Upload, X, Loader2, Calendar } from "lucide-react"
 import { compressImageToFile } from "@/lib/imageCompressor"
 import { api } from "@/services/api"
 
@@ -20,7 +20,9 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
   const [isCompressing, setIsCompressing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -102,25 +104,31 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
           </span>
         </div>
 
-        {/* Image Upload Area */}
+        {/* Native Camera & File Inputs */}
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {/* Image Capture / Selection Area */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider block">
-            Today's Photo (1 Photo / User / Day)
+            Today's Memory Photo
           </label>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
           {!imagePreview ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-border/70 hover:border-primary rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors bg-surfaceVariant/30 hover:bg-surfaceVariant/60"
-            >
+            <div className="bg-surfaceVariant/30 border-2 border-dashed border-border/70 rounded-2xl p-5 text-center space-y-4">
               {isCompressing ? (
                 <div className="flex flex-col items-center text-primary space-y-2 py-4">
                   <Loader2 className="w-8 h-8 animate-spin" />
@@ -128,16 +136,36 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
                 </div>
               ) : (
                 <>
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                    <ImagePlus className="w-6 h-6" />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold text-text-primary">Take a photo or choose from gallery</h4>
+                    <p className="text-[10px] text-text-tertiary">Photos are automatically compressed to ~50KB WebP for super fast load times.</p>
                   </div>
-                  <span className="text-xs font-medium text-text-primary">Click to select photo</span>
-                  <span className="text-[10px] text-text-tertiary mt-1">Automatically compressed to WebP (~50KB)</span>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    {/* Direct Native Camera Button */}
+                    <Button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="h-11 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-md flex items-center justify-center gap-2"
+                    >
+                      <Camera className="w-4 h-4" /> Ambil Foto Kamera 📷
+                    </Button>
+
+                    {/* Gallery Picker Button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="h-11 rounded-xl border-border/60 text-text-primary hover:bg-surfaceVariant/60 text-xs font-semibold flex items-center justify-center gap-2"
+                    >
+                      <ImagePlus className="w-4 h-4 text-secondary" /> Galeri Foto 🖼️
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
           ) : (
-            <div className="relative rounded-2xl overflow-hidden border border-border/50 bg-surfaceVariant aspect-[4/3]">
+            <div className="relative rounded-2xl overflow-hidden border border-border/50 bg-surfaceVariant aspect-[4/3] shadow-md">
               <img src={imagePreview} alt="Memory preview" className="w-full h-full object-cover" />
               <button
                 type="button"
@@ -146,7 +174,8 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
                   setSelectedFile(null)
                   setCompressedBlob(null)
                 }}
-                className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-black/80 transition-colors backdrop-blur-md"
+                className="absolute top-2 right-2 bg-black/70 text-white p-1.5 rounded-full hover:bg-black transition-colors backdrop-blur-md border border-white/20"
+                title="Remove photo"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -162,7 +191,7 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Cooking dinner together, Sunset walk..."
+            placeholder="e.g. Kencan romantis sore ini, Nonton film berdua..."
             className="bg-surfaceVariant/40 border-border/50"
             maxLength={150}
             required
