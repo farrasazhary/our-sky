@@ -1,50 +1,54 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { DATE_IDEAS_365 } from "../random-date/dateIdeas365"
 
 export class AiService {
   private static last429Time = 0
 
   /**
-   * Tries Google Generative AI with valid v1beta model names & 429 cooldown protection
+   * Tries Google Generative AI with valid model names & 15s cooldown protection
    */
   private static async generateWithGemini(prompt: string): Promise<string | null> {
     const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) return null
-
-    // If 429 Rate Limit was hit within last 45 seconds, bypass Google API to prevent spamming
-    if (Date.now() - this.last429Time < 45000) {
+    if (!apiKey) {
+      console.warn("⚠️ [AiService] GEMINI_API_KEY is not set in environment.")
       return null
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const validModelNames = [
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
-      "gemini-1.0-pro"
-    ]
+    // Cooldown check (15 seconds)
+    if (Date.now() - this.last429Time < 15000) {
+      return null
+    }
 
-    for (const modelName of validModelNames) {
-      try {
-        const model = genAI.getGenerativeModel({ 
-          model: modelName,
-          generationConfig: {
-            temperature: 0.9,
-            topP: 0.95
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey)
+      // Standard models order: gemini-1.5-flash first
+      const modelNames = [
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-pro",
+        "gemini-pro"
+      ]
+
+      for (const modelName of modelNames) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName })
+          const result = await model.generateContent(prompt)
+          const text = result.response.text().trim()
+          if (text) {
+            console.log(`🤖 [Gemini AI] Generated content using model '${modelName}'`)
+            return text
           }
-        })
-        const result = await model.generateContent(prompt)
-        const text = result.response.text().trim()
-        if (text) {
-          console.log(`🤖 [Gemini AI] Successfully generated using model '${modelName}'`)
-          return text
-        }
-      } catch (err: any) {
-        const errMsg = err?.message || String(err)
-        if (errMsg.includes("429") || errMsg.includes("Quota exceeded") || errMsg.includes("Too Many Requests")) {
-          console.warn(`⚠️ [Gemini AI] Free tier rate limit (429) hit on '${modelName}'. Cooldown active for 45s.`)
-          this.last429Time = Date.now()
-          return null
+        } catch (err: any) {
+          const errMsg = err?.message || String(err)
+          console.warn(`[AiService] Model '${modelName}' failed:`, errMsg)
+          if (errMsg.includes("429") || errMsg.includes("Quota")) {
+            this.last429Time = Date.now()
+            break
+          }
         }
       }
+    } catch (globalErr: any) {
+      console.warn("[AiService] Global Gemini execution error:", globalErr?.message || globalErr)
     }
 
     return null
@@ -169,28 +173,15 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
       }
     }
 
-    // High quality fallback date ideas
-    const fallbacks = [
-      {
-        title: "Kencan Nostalgia Foto & Jajanan Sekolah",
-        description: "Beli jajanan masa kecil bersama, duduk di taman hangat sambil melihat foto-foto awal jadian.",
-        category: "ROMANTIC",
-        estimatedBudget: "Rp 30.000 - Rp 50.000"
-      },
-      {
-        title: "Stargazing & Picnic Malam Berbintang",
-        description: "Bawa tikar dan minuman hangat favorit ke area terbuka malam hari, nikmati pemandangan langit sambil mengobrol.",
-        category: "OUTDOOR",
-        estimatedBudget: "Rp 40.000 - Rp 70.000"
-      },
-      {
-        title: "Maraton Memasak Resep Baru di Rumah",
-        description: "Pilih 1 resep masakan unik di internet, belanja bahan bersama, lalu masak dan santap hasil karya berdua.",
-        category: "INDOOR",
-        estimatedBudget: "Rp 75.000 - Rp 120.000"
-      }
-    ]
+    // High quality fallback using 365 Date Ideas pool
+    const pool = DATE_IDEAS_365
+    const randomChoice = pool[Math.floor(Math.random() * pool.length)]
 
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)]
+    return {
+      title: randomChoice.title,
+      description: `Aktivitas seru kencan ${randomChoice.title.toLowerCase()} bersama pasangan tercinta.`,
+      category: randomChoice.category.toUpperCase(),
+      estimatedBudget: randomChoice.duration || "Terjangkau"
+    }
   }
 }
