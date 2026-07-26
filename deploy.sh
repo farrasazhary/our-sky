@@ -14,6 +14,24 @@ git reset --hard origin/main
 # 2. Build Backend Server
 echo "⚙️ Building Backend Server..."
 cd server
+
+# Auto-inject Gemini API Key into server/.env if missing
+if [ -f .env ]; then
+  if ! grep -q "GEMINI_API_KEY" .env; then
+    echo 'GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"' >> .env
+  else
+    sed -i 's|GEMINI_API_KEY=.*|GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"|g' .env
+  fi
+else
+  echo 'PORT=5050' > .env
+  echo 'NODE_ENV=production' >> .env
+  echo 'DATABASE_URL="mysql://root:@localhost:3306/oursky_db"' >> .env
+  echo 'JWT_SECRET="oursky_super_secret_jwt_key_2026"' >> .env
+  echo 'JWT_EXPIRES_IN="30d"' >> .env
+  echo 'STORAGE_PATH="./storage"' >> .env
+  echo 'GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"' >> .env
+fi
+
 npm install --production=false
 npx prisma generate
 npm run build
