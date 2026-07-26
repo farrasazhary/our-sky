@@ -21,6 +21,7 @@ export class QuestionService {
    */
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
     const now = new Date()
+    const todayStr = now.toISOString().split("T")[0]
     const startOfYear = new Date(now.getFullYear(), 0, 1)
     const diffMs = now.getTime() - startOfYear.getTime()
     const oneDayMs = 1000 * 60 * 60 * 24
@@ -36,14 +37,20 @@ export class QuestionService {
     })
 
     let question = null
+    let isSameDay = false
+
     if (assignedEvent) {
-      question = await prisma.question.findUnique({
-        where: { id: assignedEvent.sourceId }
-      })
+      const eventDateStr = new Date(assignedEvent.createdAt).toISOString().split("T")[0]
+      if (eventDateStr === todayStr) {
+        isSameDay = true
+        question = await prisma.question.findUnique({
+          where: { id: assignedEvent.sourceId }
+        })
+      }
     }
 
-    // If no active question is assigned to this relationship, generate a brand new one using Gemini AI!
-    if (!question) {
+    // If no active question is assigned for today, generate a brand new one using Gemini AI!
+    if (!question || !isSameDay) {
       console.log("🤖 [Gemini AI] Generating active romantic question on-demand for relationship...")
       const aiData = await AiService.generateRomanticQuestion()
       
@@ -62,7 +69,7 @@ export class QuestionService {
           eventType: "QUESTION_ASSIGNED",
           sourceEntity: "questions",
           sourceId: question.id,
-          description: "Assigned active daily question"
+          description: `Assigned active daily question for ${todayStr}`
         }
       })
     }
@@ -102,7 +109,6 @@ export class QuestionService {
 
   /**
    * Rerolls today's question by generating a brand new Gemini AI question on demand.
-   * Locked if EITHER partner has already submitted an answer.
    */
   static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, currentQuestionIdStr?: string) {
     if (currentQuestionIdStr) {
@@ -115,8 +121,8 @@ export class QuestionService {
           }
         })
 
-        if (existingAnswersCount > 0) {
-          throw new AppError("Pertanyaan tidak dapat diganti karena sudah ada pasangan yang menjawab.", 400)
+        if (existingAnswersCount >= 2) {
+          throw new AppError("Pertanyaan yang sudah selesai dijawab berdua tidak dapat diganti.", 400)
         }
       } catch (e: any) {
         if (e instanceof AppError) throw e
