@@ -25,6 +25,12 @@ export function useWebPushSubscription() {
       }
 
       try {
+        // Explicitly check/request Notification permission
+        if ("Notification" in window && Notification.permission !== "granted") {
+          const perm = await Notification.requestPermission()
+          if (perm !== "granted") return
+        }
+
         const registration = await navigator.serviceWorker.ready
 
         // 1. Get VAPID public key from backend
