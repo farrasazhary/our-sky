@@ -62,7 +62,7 @@ export function Dashboard() {
     
     if ("vibrate" in navigator) {
       try {
-        navigator.vibrate([800, 200, 800, 200])
+        navigator.vibrate([2000])
       } catch (e) {}
     }
 
