@@ -53,14 +53,14 @@ export function Relationship() {
   return (
     <div className="flex flex-col min-h-screen pb-24 bg-background">
       {/* Header */}
-      <header className="p-6 pt-12 pb-4 flex justify-between items-center sticky top-0 bg-background/90 backdrop-blur-md z-30 border-b border-border/30">
-        <h1 className="text-2xl font-bold text-text-primary">Profile</h1>
-        <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-text-secondary hover:text-text-primary">
+      <header className="px-6 py-3.5 flex justify-between items-center sticky top-0 bg-background/90 backdrop-blur-md z-30 border-b border-border/30 shadow-xs">
+        <h1 className="text-xl font-bold text-text-primary tracking-tight">Profile</h1>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-text-secondary hover:text-text-primary rounded-full hover:bg-surfaceVariant/60 transition-colors">
           <Settings className="w-5 h-5" />
         </Button>
       </header>
 
-      <div className="px-6 space-y-6">
+      <div className="px-6 pt-5 space-y-6">
         {/* Couple Profile Card with Custom Banner */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-surface border-border/50 overflow-hidden relative shadow-sm">
