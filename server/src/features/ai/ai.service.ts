@@ -1,23 +1,28 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 export class AiService {
+  private static last429Time = 0
+
   /**
-   * Tries multiple Gemini model aliases in cascade to guarantee 100% API compatibility
+   * Tries Google Generative AI with valid v1beta model names & 429 cooldown protection
    */
   private static async generateWithGemini(prompt: string): Promise<string | null> {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) return null
 
+    // If 429 Rate Limit was hit within last 45 seconds, bypass Google API to prevent spamming
+    if (Date.now() - this.last429Time < 45000) {
+      return null
+    }
+
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Model fallback cascade order
-    const modelNames = [
+    const validModelNames = [
       "gemini-2.0-flash",
-      "gemini-1.5-flash-latest",
-      "gemini-1.5-pro",
-      "gemini-pro"
+      "gemini-1.5-flash",
+      "gemini-1.0-pro"
     ]
 
-    for (const modelName of modelNames) {
+    for (const modelName of validModelNames) {
       try {
         const model = genAI.getGenerativeModel({ 
           model: modelName,
@@ -33,7 +38,12 @@ export class AiService {
           return text
         }
       } catch (err: any) {
-        console.warn(`[AiService] Model '${modelName}' attempt failed:`, err?.message || err)
+        const errMsg = err?.message || String(err)
+        if (errMsg.includes("429") || errMsg.includes("Quota exceeded") || errMsg.includes("Too Many Requests")) {
+          console.warn(`⚠️ [Gemini AI] Free tier rate limit (429) hit on '${modelName}'. Cooldown active for 45s.`)
+          this.last429Time = Date.now()
+          return null
+        }
       }
     }
 
@@ -41,7 +51,7 @@ export class AiService {
   }
 
   /**
-   * Generates a fresh, deep romantic couple question using Gemini AI or rich 50+ curated pool
+   * Generates a fresh, deep romantic couple question using Gemini AI or rich 40+ curated pool
    */
   static async generateRomanticQuestion(): Promise<{ questionText: string; category: string }> {
     const randomSeed = Math.floor(Math.random() * 10000)
