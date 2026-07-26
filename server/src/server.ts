@@ -4,6 +4,7 @@ dotenv.config()
 import app from "./app"
 import { prisma } from "./config/database"
 import { initScheduler } from "./scheduler"
+import { initWebPush } from "./config/webpush.config"
 
 const PORT = process.env.PORT || 5050
 
@@ -12,6 +13,9 @@ async function main() {
     // Verify database connection
     await prisma.$connect()
     console.log("✅ Database connected successfully")
+
+    // Initialize Web Push VAPID details
+    initWebPush()
 
     // Start background schedulers
     initScheduler()

@@ -36,6 +36,9 @@ export function useNotificationListener() {
           if (!seenIdsRef.current.has(id)) {
             seenIdsRef.current.add(id)
 
+            // Dispatch Foreground Toast Banner Notification
+            window.dispatchEvent(new CustomEvent("oursky_show_toast", { detail: notif }))
+
             // Trigger physical Web Vibration API (Double Heartbeat Pattern)
             if (notif.type === "HEARTBEAT" || notif.title?.includes("Heartbeat")) {
               if ("vibrate" in navigator) {

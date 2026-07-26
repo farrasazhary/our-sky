@@ -3,6 +3,8 @@ import { Request, Response, Router } from "express"
 import { AuthRequest, authenticate } from "../../middleware/authenticate"
 import { ApiResponse } from "../../shared/responses/ApiResponse"
 import { asyncHandler } from "../../shared/utils/asyncHandler"
+import { VAPID_PUBLIC_KEY } from "../../config/webpush.config"
+import webpush from "web-push"
 
 export class NotificationRepository {
   static async createNotification(userId: bigint, title: string, message: string, notificationType: string = "INFO") {
@@ -36,6 +38,34 @@ export class NotificationRepository {
       data: { isRead: true }
     })
   }
+
+  static async savePushSubscription(userId: bigint, endpoint: string, p256dh: string, auth: string) {
+    // Delete existing subscription with same endpoint if exists
+    await prisma.pushSubscription.deleteMany({
+      where: { endpoint }
+    })
+
+    return prisma.pushSubscription.create({
+      data: {
+        userId,
+        endpoint,
+        p256dh,
+        auth
+      }
+    })
+  }
+
+  static async findUserSubscriptions(userId: bigint) {
+    return prisma.pushSubscription.findMany({
+      where: { userId }
+    })
+  }
+
+  static async deleteSubscriptionByEndpoint(endpoint: string) {
+    return prisma.pushSubscription.deleteMany({
+      where: { endpoint }
+    })
+  }
 }
 
 export class NotificationService {
@@ -65,6 +95,53 @@ export class NotificationService {
     return { success: true }
   }
 
+  static async saveSubscription(userIdStr: string, subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+    const userId = BigInt(userIdStr)
+    const { endpoint, keys } = subscription
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      throw new Error("Invalid subscription object")
+    }
+    return NotificationRepository.savePushSubscription(userId, endpoint, keys.p256dh, keys.auth)
+  }
+
+  /**
+   * Dispatches background Web Push to user's registered devices via Google FCM / Apple APNs
+   */
+  static async sendWebPushToUser(userId: bigint, payload: { title: string; message: string; type?: string }) {
+    try {
+      const subs = await NotificationRepository.findUserSubscriptions(userId)
+      if (subs.length === 0) return
+
+      const pushPayload = JSON.stringify({
+        title: payload.title,
+        message: payload.message,
+        type: payload.type || "INFO",
+        sentAt: new Date()
+      })
+
+      for (const sub of subs) {
+        const pushSubscription = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth
+          }
+        }
+
+        webpush.sendNotification(pushSubscription, pushPayload).catch((err: any) => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            // Subscription expired or unsubscribed, delete from DB
+            NotificationRepository.deleteSubscriptionByEndpoint(sub.endpoint).catch(() => null)
+          } else {
+            console.warn("Web Push dispatch warning:", err.message)
+          }
+        })
+      }
+    } catch (err) {
+      console.warn("Failed to dispatch web push notifications:", err)
+    }
+  }
+
   /**
    * Helper method to send a notification to the partner in a relationship
    */
@@ -76,7 +153,14 @@ export class NotificationService {
       if (!rel) return null
 
       const recipientUserId = rel.userOneId === senderUserId ? rel.userTwoId : rel.userOneId
-      return await NotificationRepository.createNotification(recipientUserId, title, message, notificationType)
+      
+      // 1. Create DB notification
+      const dbNotif = await NotificationRepository.createNotification(recipientUserId, title, message, notificationType)
+
+      // 2. Dispatch Background Web Push to recipient's phone/devices
+      this.sendWebPushToUser(recipientUserId, { title, message, type: notificationType })
+
+      return dbNotif
     } catch (err) {
       console.warn("Failed to dispatch partner notification:", err)
       return null
@@ -85,6 +169,17 @@ export class NotificationService {
 }
 
 export class NotificationController {
+  static getVapidKey = async (_req: Request, res: Response) => {
+    return ApiResponse.success(res, "VAPID Public Key retrieved.", { publicKey: VAPID_PUBLIC_KEY })
+  }
+
+  static subscribe = async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId
+    const { subscription } = req.body
+    await NotificationService.saveSubscription(userId, subscription)
+    return ApiResponse.created(res, "Push subscription registered successfully.")
+  }
+
   static getList = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId
     const data = await NotificationService.getUserNotifications(userId)
@@ -106,8 +201,13 @@ export class NotificationController {
 }
 
 const router = Router()
+
+// VAPID Public key can be retrieved publicly or authenticated
+router.get("/vapid-key", asyncHandler(NotificationController.getVapidKey))
+
 router.use(authenticate)
 
+router.post("/subscribe", asyncHandler(NotificationController.subscribe))
 router.get("/", asyncHandler(NotificationController.getList))
 router.put("/read-all", asyncHandler(NotificationController.readAll))
 router.put("/:id/read", asyncHandler(NotificationController.read))

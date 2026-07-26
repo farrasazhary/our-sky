@@ -46,6 +46,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
+        importScripts: ['/sw-push-handler.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpeg}'],
         navigateFallbackDenylist: [/^\/api/, /^\/uploads/, /^\/storage/]
       }

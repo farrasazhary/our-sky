@@ -139,6 +139,17 @@ class ApiClient {
     return this.request<any[]>("/notifications")
   }
 
+  async getVapidKey() {
+    return this.request<{ publicKey: string }>("/notifications/vapid-key")
+  }
+
+  async subscribePush(subscription: any) {
+    return this.request("/notifications/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ subscription }),
+    })
+  }
+
   async markNotificationRead(id: string) {
     return this.request<{ success: boolean }>(`/notifications/${id}/read`, {
       method: "PUT",
