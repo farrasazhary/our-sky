@@ -10,13 +10,36 @@ import { prisma } from "../../config/database"
 import { EVENT_TYPES } from "../../shared/constants/eventTypes"
 
 const DATE_IDEAS = [
-  { id: 1, title: "Memasak resep makanan baru bersama", category: "Food & Drink", duration: "2 Jam" },
-  { id: 2, title: "Jalan santai di taman terbuka malam hari", category: "Outdoor", duration: "1 Jam" },
-  { id: 3, title: "Membuat benteng bantal di kamar & nonton film", category: "Cozy Home", duration: "3 Jam" },
-  { id: 4, title: "Mencoba kelas melukis atau kerajinan tangan berdua", category: "Creative", duration: "2 Jam" },
-  { id: 5, title: "Piknik santai dengan minuman favorit di ruang tamu", category: "Cozy Home", duration: "1.5 Jam" },
-  { id: 6, title: "Stargazing memandang bintang di tempat terbuka", category: "Outdoor", duration: "2 Jam" },
-  { id: 7, title: "Membuat kue kering bersama dari awal", category: "Cozy Home", duration: "1 Jam" }
+  { id: 1, title: "Memasak resep masakan baru dari negara lain bersama", category: "Food & Drink", duration: "2 Jam" },
+  { id: 2, title: "Jalan santai di taman terbuka malam hari sambil minum es krim", category: "Outdoor", duration: "1 Jam" },
+  { id: 3, title: "Membuat benteng bantal di kamar & maraton film favorit", category: "Cozy Home", duration: "3 Jam" },
+  { id: 4, title: "Mencoba kelas melukis kain atau pottery berdua", category: "Creative", duration: "2 Jam" },
+  { id: 5, title: "Piknik santai dengan camilan favorit di halaman atau ruang tamu", category: "Cozy Home", duration: "1.5 Jam" },
+  { id: 6, title: "Stargazing memandang bintang malam di area terbuka", category: "Outdoor", duration: "2 Jam" },
+  { id: 7, title: "Membuat kue kering atau dessert manis bersama dari awal", category: "Cozy Home", duration: "1.5 Jam" },
+  { id: 8, title: "Kencan nostalgia: Beli jajanan sekolah masa kecil berdua", category: "Food & Drink", duration: "1 Jam" },
+  { id: 9, title: "Night ride keliling kota sambil mendengarkan playlist lagu kenangan", category: "Outdoor", duration: "1.5 Jam" },
+  { id: 10, title: "Tantangan belanja di supermarket dengan budget Rp 50.000 untuk pasangan", category: "Food & Drink", duration: "1 Jam" },
+  { id: 11, title: "Foto bareng ala photobooth vintage berdua di studio atau HP", category: "Creative", duration: "45 Menit" },
+  { id: 12, title: "Main board game atau kartu pertanyaan romantis ditemani teh hangat", category: "Cozy Home", duration: "2 Jam" },
+  { id: 13, title: "Berburu kopi di coffeeshop tersembunyi yang belum pernah dikunjungi", category: "Food & Drink", duration: "2 Jam" },
+  { id: 14, title: "Olahraga santai atau jalan pagi bersama di akhir pekan", category: "Outdoor", duration: "1 Jam" },
+  { id: 15, title: "DIY kerajinan lilin aromaterapi buatan sendiri di rumah", category: "Creative", duration: "1.5 Jam" },
+  { id: 16, title: "Mata tertutup (blindfold) saling mencicipi dan menebak makanan", category: "Food & Drink", duration: "1 Jam" },
+  { id: 17, title: "Nonton matahari terbit (sunrise) atau matahari terbenam (sunset)", category: "Outdoor", duration: "1.5 Jam" },
+  { id: 18, title: "Spa & treatment pijat relaksasi mandiri di rumah", category: "Cozy Home", duration: "1 Jam" },
+  { id: 19, title: "Pergi ke toko buku bekas & saling pilihkan 1 buku untuk dibaca", category: "Creative", duration: "2 Jam" },
+  { id: 20, title: "Karaoke lagu-lagu galau & romantis favorit di rumah atau studio", category: "Cozy Home", duration: "2 Jam" },
+  { id: 21, title: "Berburu kuliner malam kaki lima yang legendaris", category: "Food & Drink", duration: "2 Jam" },
+  { id: 22, title: "Bikin video vlog singkat atau kompilasi momen lucu berdua", category: "Creative", duration: "1 Jam" },
+  { id: 23, title: "Sewa sepeda dan berkeliling area bersejarah atau taman", category: "Outdoor", duration: "1.5 Jam" },
+  { id: 24, title: "Menulis surat cinta romantis rahasia lalu ditukar dan dibaca bersama", category: "Creative", duration: "45 Menit" },
+  { id: 25, title: "Mengunjungi museum atau galeri seni di akhir pekan", category: "Creative", duration: "2.5 Jam" },
+  { id: 26, title: "Makan malam romantis ala candle light dinner buatan sendiri di rumah", category: "Cozy Home", duration: "2 Jam" },
+  { id: 27, title: "Kencan tanpa HP selama 2 jam (Full Quality Time focus)", category: "Cozy Home", duration: "2 Jam" },
+  { id: 28, title: "Kencan es krim keliling kota mecoba varian rasa paling aneh", category: "Food & Drink", duration: "1 Jam" },
+  { id: 29, title: "Menata ulang dekorasi sudut ruangan rumah berdua", category: "Cozy Home", duration: "2 Jam" },
+  { id: 30, title: "Kencan impian masa depan: Bikin vision board foto kencan impian", category: "Creative", duration: "1.5 Jam" }
 ]
 
 export class RandomDateService {
