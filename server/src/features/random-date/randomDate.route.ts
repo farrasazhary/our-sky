@@ -271,6 +271,7 @@ router.use(authorizeRelationship)
 
 router.get("/status", asyncHandler(RandomDateController.getStatus))
 router.get("/roll", asyncHandler(RandomDateController.roll))
+router.post("/roll", asyncHandler(RandomDateController.roll))
 router.post("/ai-generate", asyncHandler(RandomDateController.generateAi))
 router.post("/propose", asyncHandler(RandomDateController.propose))
 
