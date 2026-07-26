@@ -17,7 +17,7 @@ const answerSchema = z.object({
 
 export class QuestionService {
   /**
-   * Generates a 100% dynamic romantic question using Gemini AI on-demand
+   * Generates or fetches active romantic question for today
    */
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
     const now = new Date()
@@ -26,25 +26,15 @@ export class QuestionService {
     const oneDayMs = 1000 * 60 * 60 * 24
     const dayOfYear = Math.floor(diffMs / oneDayMs) + 1
 
-    // Smart Anti-Repeat Tracking: Get questions already answered by this relationship
-    const answered = await prisma.questionAnswer.findMany({
-      where: { relationshipId },
-      select: { questionId: true }
-    })
-    const answeredIds = Array.from(new Set(answered.map(a => a.questionId)))
-
-    // Find if there is an un-answered active question already available
+    // Find latest active question
     let question = await prisma.question.findFirst({
-      where: {
-        isActive: true,
-        id: { notIn: answeredIds.length > 0 ? answeredIds : [0n] }
-      },
+      where: { isActive: true },
       orderBy: { createdAt: "desc" }
     })
 
-    // If no active unanswered question exists, generate a brand new one using Gemini AI!
+    // If no active question exists, generate a brand new one using Gemini AI!
     if (!question) {
-      console.log("🤖 [Gemini AI] Generating a fresh romantic question on-demand...")
+      console.log("🤖 [Gemini AI] Generating active romantic question on-demand...")
       const aiData = await AiService.generateRomanticQuestion()
       
       question = await prisma.question.create({

@@ -82,9 +82,16 @@ export function Question() {
 
     setIsSubmitting(true)
     try {
-      await api.answerQuestion(todayQuestion.id, answer.trim())
+      const res: any = await api.answerQuestion(todayQuestion.id, answer.trim())
       setAnswered(true)
-      loadQuestionData()
+      setTodayQuestion((prev: any) => ({
+        ...prev,
+        myAnswer: {
+          answerText: answer.trim(),
+          answeredAt: new Date()
+        },
+        isBothAnswered: res?.isBothAnswered || false
+      }))
     } catch (err: any) {
       alert(err.message || "Failed to submit answer")
     } finally {
