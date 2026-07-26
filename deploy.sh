@@ -15,12 +15,16 @@ git reset --hard origin/main
 echo "⚙️ Building Backend Server..."
 cd server
 
-# Auto-inject Gemini API Key into server/.env if missing
+# Auto-inject Gemini API Key & VAPID Keys into server/.env if missing
 if [ -f .env ]; then
   if ! grep -q "GEMINI_API_KEY" .env; then
     echo 'GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"' >> .env
   else
     sed -i 's|GEMINI_API_KEY=.*|GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"|g' .env
+  fi
+  if ! grep -q "VAPID_PUBLIC_KEY" .env; then
+    echo 'VAPID_PUBLIC_KEY="BCtwDpMOybhnLrjpPd8rCIiRuh_qJ0bAxqUGgMdqUp543rGzSwCFvd1np0v74QjQfKH5T_gyNqZQCkYBMLdMeG4"' >> .env
+    echo 'VAPID_PRIVATE_KEY="nYRjaEwxKMeuFEg24Zf385GqOfc9pkG4rEh-vQEo1bc"' >> .env
   fi
 else
   echo 'PORT=5050' > .env
@@ -30,6 +34,8 @@ else
   echo 'JWT_EXPIRES_IN="30d"' >> .env
   echo 'STORAGE_PATH="./storage"' >> .env
   echo 'GEMINI_API_KEY="AIzaSyCzJkJ3JSwp9IvWxcRBLiC__4NB8GiCZM0"' >> .env
+  echo 'VAPID_PUBLIC_KEY="BCtwDpMOybhnLrjpPd8rCIiRuh_qJ0bAxqUGgMdqUp543rGzSwCFvd1np0v74QjQfKH5T_gyNqZQCkYBMLdMeG4"' >> .env
+  echo 'VAPID_PRIVATE_KEY="nYRjaEwxKMeuFEg24Zf385GqOfc9pkG4rEh-vQEo1bc"' >> .env
 fi
 
 npm install --production=false
