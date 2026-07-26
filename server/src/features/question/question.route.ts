@@ -17,7 +17,7 @@ const answerSchema = z.object({
 
 export class QuestionService {
   /**
-   * Generates or fetches active romantic question for today
+   * Generates or fetches active romantic question for today for this specific relationship
    */
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
     const now = new Date()
@@ -26,15 +26,25 @@ export class QuestionService {
     const oneDayMs = 1000 * 60 * 60 * 24
     const dayOfYear = Math.floor(diffMs / oneDayMs) + 1
 
-    // Find latest active question
-    let question = await prisma.question.findFirst({
-      where: { isActive: true },
+    // Find the latest question assigned specifically to this relationship
+    const assignedEvent = await prisma.relationshipEvent.findFirst({
+      where: {
+        relationshipId,
+        eventType: "QUESTION_ASSIGNED"
+      },
       orderBy: { createdAt: "desc" }
     })
 
-    // If no active question exists, generate a brand new one using Gemini AI!
+    let question = null
+    if (assignedEvent) {
+      question = await prisma.question.findUnique({
+        where: { id: assignedEvent.sourceId }
+      })
+    }
+
+    // If no active question is assigned to this relationship, generate a brand new one using Gemini AI!
     if (!question) {
-      console.log("🤖 [Gemini AI] Generating active romantic question on-demand...")
+      console.log("🤖 [Gemini AI] Generating active romantic question on-demand for relationship...")
       const aiData = await AiService.generateRomanticQuestion()
       
       question = await prisma.question.create({
@@ -42,6 +52,17 @@ export class QuestionService {
           questionText: aiData.questionText,
           category: aiData.category || "AI Generated",
           isActive: true
+        }
+      })
+
+      // Assign to this relationship
+      await prisma.relationshipEvent.create({
+        data: {
+          relationshipId,
+          eventType: "QUESTION_ASSIGNED",
+          sourceEntity: "questions",
+          sourceId: question.id,
+          description: "Assigned active daily question"
         }
       })
     }
@@ -110,6 +131,17 @@ export class QuestionService {
         questionText: aiData.questionText,
         category: aiData.category || "AI Generated",
         isActive: true
+      }
+    })
+
+    // Assign new question to this relationship
+    await prisma.relationshipEvent.create({
+      data: {
+        relationshipId,
+        eventType: "QUESTION_ASSIGNED",
+        sourceEntity: "questions",
+        sourceId: question.id,
+        description: "Rerolled active daily question"
       }
     })
 
