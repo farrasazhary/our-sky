@@ -152,13 +152,16 @@ export class NotificationService {
       })
       if (!rel) return null
 
-      const recipientUserId = rel.userOneId === senderUserId ? rel.userTwoId : rel.userOneId
+      // Use string comparison to safely compare BigInt / string IDs
+      const recipientUserId = rel.userOneId.toString() === senderUserId.toString() ? rel.userTwoId : rel.userOneId
       
       // 1. Create DB notification
       const dbNotif = await NotificationRepository.createNotification(recipientUserId, title, message, notificationType)
 
-      // 2. Dispatch Background Web Push to recipient's phone/devices
-      this.sendWebPushToUser(recipientUserId, { title, message, type: notificationType })
+      // 2. Dispatch Background Web Push safely without blocking response
+      this.sendWebPushToUser(recipientUserId, { title, message, type: notificationType }).catch(e => {
+        console.warn("Background Web Push warning:", e)
+      })
 
       return dbNotif
     } catch (err) {

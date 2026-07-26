@@ -80,8 +80,8 @@ export function useNotificationListener() {
     // Initial check
     checkNotifications()
 
-    // Poll every 8 seconds for real-time partner activity
-    const interval = setInterval(checkNotifications, 8000)
+    // Fast polling every 3 seconds for near-instant partner activity delivery
+    const interval = setInterval(checkNotifications, 3000)
     return () => clearInterval(interval)
   }, [isAuthenticated])
 }
