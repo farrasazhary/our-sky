@@ -15,12 +15,16 @@ self.addEventListener("push", function (event) {
       tag: `oursky-push-${Date.now()}`,
       renotify: true,
       silent: false,
-      requireInteraction: notifType === "HEARTBEAT" || notifType === "QUESTION",
+      requireInteraction: true,
+      timestamp: Date.now(),
+      vibrate: [500, 200, 500, 200, 500, 200, 500],
       data: {
         url: payload.targetUrl || (notifType === "HEARTBEAT" ? "/dashboard" : "/notifications"),
         type: notifType
       },
-      vibrate: notifType === "HEARTBEAT" ? [800, 200, 800, 200] : [2000]
+      actions: [
+        { action: "open", title: "Buka Aplikasi 🌌" }
+      ]
     }
 
     event.waitUntil(self.registration.showNotification(title, options))

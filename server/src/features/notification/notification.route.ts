@@ -158,7 +158,10 @@ export class NotificationService {
           }
         }
 
-        webpush.sendNotification(pushSubscription, pushPayload).catch((err: any) => {
+        webpush.sendNotification(pushSubscription, pushPayload, {
+          headers: { Urgency: "high" },
+          TTL: 86400
+        }).catch((err: any) => {
           if (err.statusCode === 404 || err.statusCode === 410) {
             // Subscription expired or unsubscribed, delete from DB
             NotificationRepository.deleteSubscriptionByEndpoint(sub.endpoint).catch(() => null)
