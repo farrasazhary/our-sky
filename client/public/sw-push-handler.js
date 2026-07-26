@@ -20,7 +20,7 @@ self.addEventListener("push", function (event) {
         url: payload.targetUrl || (notifType === "HEARTBEAT" ? "/dashboard" : "/notifications"),
         type: notifType
       },
-      vibrate: notifType === "HEARTBEAT" ? [300, 150, 300, 150, 300] : [200, 100, 200]
+      vibrate: notifType === "HEARTBEAT" ? [800, 200, 800, 200] : [2000]
     }
 
     event.waitUntil(self.registration.showNotification(title, options))
