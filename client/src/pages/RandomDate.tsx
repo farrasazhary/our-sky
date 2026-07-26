@@ -18,21 +18,15 @@ import {
 import { useNavigate } from "react-router-dom"
 import { api } from "@/services/api"
 
-const LOCAL_DATE_IDEAS = [
-  { title: "Memasak resep makanan baru bersama", category: "Food & Drink", duration: "2 Jam", isAiGenerated: false },
-  { title: "Jalan santai di taman terbuka malam hari", category: "Outdoor", duration: "1 Jam", isAiGenerated: false },
-  { title: "Membuat benteng bantal di kamar & nonton film", category: "Cozy Home", duration: "3 Jam", isAiGenerated: false },
-  { title: "Mencoba kelas melukis atau kerajinan tangan berdua", category: "Creative", duration: "2 Jam", isAiGenerated: false },
-  { title: "Piknik santai dengan minuman favorit di ruang tamu", category: "Cozy Home", duration: "1.5 Jam", isAiGenerated: false },
-  { title: "Stargazing memandang bintang di tempat terbuka", category: "Outdoor", duration: "2 Jam", isAiGenerated: false },
-  { title: "Membuat kue kering bersama dari awal", category: "Cozy Home", duration: "1 Jam", isAiGenerated: false }
-]
-
 export function RandomDate() {
   const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<"roll" | "history">("roll")
-  const [ideaIndex, setIdeaIndex] = useState(0)
-  const [currentIdea, setCurrentIdea] = useState<any>(LOCAL_DATE_IDEAS[0])
+  const [currentIdea, setCurrentIdea] = useState<any>({
+    title: "Memasak resep makanan baru bersama",
+    category: "Food & Drink",
+    duration: "2 Jam",
+    isAiGenerated: false
+  })
   const [activeProposal, setActiveProposal] = useState<any | null>(null)
   const [history, setHistory] = useState<any[]>([])
   
@@ -44,12 +38,26 @@ export function RandomDate() {
   const fetchStatus = async () => {
     setIsLoading(true)
     try {
-      const res = await api.getRandomDateStatus()
-      if (res) {
-        setActiveProposal(res.activeProposal || null)
-        if (Array.isArray(res.completedHistory)) {
-          setHistory(res.completedHistory)
+      const [statusRes, initialRoll] = await Promise.all([
+        api.getRandomDateStatus().catch(() => null),
+        api.rollRandomDate().catch(() => null)
+      ])
+
+      if (statusRes) {
+        setActiveProposal(statusRes.activeProposal || null)
+        if (Array.isArray(statusRes.completedHistory)) {
+          setHistory(statusRes.completedHistory)
         }
+      }
+
+      if (initialRoll && initialRoll.title) {
+        setCurrentIdea({
+          id: initialRoll.id || `date-${Date.now()}`,
+          title: initialRoll.title,
+          category: initialRoll.category || "Romantic",
+          duration: initialRoll.duration || "2 Jam",
+          isAiGenerated: initialRoll.isAiGenerated || false
+        })
       }
     } catch (err) {
       console.warn("Failed to fetch date status:", err)
@@ -64,34 +72,43 @@ export function RandomDate() {
 
   const handleRoll = async () => {
     setIsRolling(true)
-    const nextIndex = ideaIndex + 1
-
-    // Seamlessly fetch a fresh AI date idea when rolling
-    if (nextIndex >= LOCAL_DATE_IDEAS.length || (skippedCount > 2 && Math.random() > 0.5)) {
-      try {
-        const aiIdea = await api.generateAiDateIdea("ROMANTIC")
-        if (aiIdea) {
-          setCurrentIdea({
-            id: aiIdea.id,
-            title: aiIdea.title,
-            category: aiIdea.category || "Romantic",
-            duration: aiIdea.duration || "2 Jam",
-            isAiGenerated: true
-          })
-          setSkippedCount((prev) => prev + 1)
-          setIsRolling(false)
-          return
-        }
-      } catch (err) {
-        // Fallback to local list loop
+    try {
+      // 1. Fetch a fresh date idea from backend (365 Date Ideas pool or Gemini AI)
+      const res = await api.rollRandomDate().catch(() => null)
+      if (res && res.title) {
+        setCurrentIdea({
+          id: res.id || `date-${Date.now()}`,
+          title: res.title,
+          category: res.category || "Romantic",
+          duration: res.duration || "2 Jam",
+          isAiGenerated: res.isAiGenerated || false
+        })
+        setSkippedCount((prev) => prev + 1)
+        setIsRolling(false)
+        return
       }
+    } catch (err) {
+      console.warn("Backend roll failed, trying AI generate...")
     }
 
-    const wrappedIndex = nextIndex % LOCAL_DATE_IDEAS.length
-    setIdeaIndex(wrappedIndex)
-    setCurrentIdea(LOCAL_DATE_IDEAS[wrappedIndex])
-    setSkippedCount((prev) => prev + 1)
-    setIsRolling(false)
+    // 2. Fallback to Gemini AI generate if roll API call fails
+    try {
+      const aiIdea = await api.generateAiDateIdea("ROMANTIC")
+      if (aiIdea && aiIdea.title) {
+        setCurrentIdea({
+          id: aiIdea.id,
+          title: aiIdea.title,
+          category: aiIdea.category || "Romantic",
+          duration: aiIdea.duration || "2 Jam",
+          isAiGenerated: true
+        })
+        setSkippedCount((prev) => prev + 1)
+      }
+    } catch (e) {
+      console.warn("AI generation failed.")
+    } finally {
+      setIsRolling(false)
+    }
   }
 
   const handlePropose = async () => {
