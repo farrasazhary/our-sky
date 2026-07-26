@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 /**
  * Custom hook that listens for new unread notifications from partner in real-time
- * and dispatches native OS System Push Notifications via browser Notification API.
+ * and dispatches native OS System Push Notifications via browser Notification API and Web Vibration API.
  */
 export function useNotificationListener() {
   const { isAuthenticated } = useAuth()
@@ -35,6 +35,19 @@ export function useNotificationListener() {
           const id = notif.id.toString()
           if (!seenIdsRef.current.has(id)) {
             seenIdsRef.current.add(id)
+
+            // Trigger physical Web Vibration API (Double Heartbeat Pattern)
+            if (notif.type === "HEARTBEAT" || notif.title?.includes("Heartbeat")) {
+              if ("vibrate" in navigator) {
+                try {
+                  navigator.vibrate([120, 80, 120, 300, 120, 80, 120])
+                } catch (e) {
+                  // Vibration API unsupported or muted
+                }
+              }
+              // Dispatch custom window event to trigger floating hearts burst in UI
+              window.dispatchEvent(new CustomEvent("oursky_heartbeat_received", { detail: notif }))
+            }
 
             // Trigger OS System Push Notification if permission granted
             if ("Notification" in window && Notification.permission === "granted") {

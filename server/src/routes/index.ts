@@ -11,6 +11,7 @@ import { openWhenRoutes } from "../features/open-when/openWhen.route"
 import { randomDateRoutes } from "../features/random-date/randomDate.route"
 import { constellationRoutes } from "../features/constellation/constellation.route"
 import { notificationRoutes } from "../features/notification/notification.route"
+import { heartbeatRoutes } from "../features/heartbeat/heartbeat.route"
 import { ImportantDayController } from "../features/important-day/importantDay.route"
 import { authenticate } from "../middleware/authenticate"
 import { authorizeRelationship } from "../middleware/authorize"
@@ -36,5 +37,6 @@ router.use("/open-whens", openWhenRoutes)
 router.use("/random-dates", randomDateRoutes)
 router.use("/constellation", constellationRoutes)
 router.use("/notifications", notificationRoutes)
+router.use("/heartbeats", heartbeatRoutes)
 
 export { router }

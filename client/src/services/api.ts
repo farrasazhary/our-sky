@@ -338,6 +338,20 @@ class ApiClient {
   async getConstellationStars() {
     return this.request<any[]>("/constellation")
   }
+
+  // ----------------------------------------------------
+  // HEARTBEAT PULSE API
+  // ----------------------------------------------------
+  async sendHeartbeat(message?: string) {
+    return this.request<{ id: string; message: string; senderName: string; totalCount: number; sentAt: string }>("/heartbeats/send", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    })
+  }
+
+  async getHeartbeatStats() {
+    return this.request<{ totalCount: number; latest: any | null }>("/heartbeats/stats")
+  }
 }
 
 export const api = new ApiClient()

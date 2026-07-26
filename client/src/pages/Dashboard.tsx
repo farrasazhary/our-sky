@@ -25,6 +25,7 @@ import { CountdownCard } from "@/components/CountdownCard"
 import { InvitePartnerModal } from "@/components/modals/InvitePartnerModal"
 import { EnterCodeModal } from "@/components/modals/EnterCodeModal"
 import { ConnectedSuccessModal } from "@/components/modals/ConnectedSuccessModal"
+import { FloatingHeartBurst } from "@/components/FloatingHeartBurst"
 import { api } from "@/services/api"
 
 export function Dashboard() {
@@ -44,16 +45,55 @@ export function Dashboard() {
   const [openWhensCount, setOpenWhensCount] = useState<number>(0)
   const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0)
 
+  // Heartbeat Pulse states
+  const [isHeartBurstActive, setIsHeartBurstActive] = useState(false)
+  const [heartbeatStats, setHeartbeatStats] = useState<{ totalCount: number; latest: any | null }>({ totalCount: 0, latest: null })
+  const [isSendingHeartbeat, setIsSendingHeartbeat] = useState(false)
+
   // Modals state
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [isEnterCodeOpen, setIsEnterCodeOpen] = useState(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState(false)
 
+  const handleSendHeartbeat = async () => {
+    if (isSendingHeartbeat) return
+    setIsSendingHeartbeat(true)
+    setIsHeartBurstActive(true)
+    
+    if ("vibrate" in navigator) {
+      try {
+        navigator.vibrate([120, 80, 120, 300, 120, 80, 120])
+      } catch (e) {}
+    }
+
+    try {
+      const res = await api.sendHeartbeat("Aku lagi kangen banget sama kamu! 💓")
+      if (res) {
+        setHeartbeatStats(prev => ({ ...prev, totalCount: res.totalCount }))
+      }
+    } catch (err) {
+      console.warn("Failed to send heartbeat:", err)
+    } finally {
+      setIsSendingHeartbeat(false)
+    }
+  }
+
+  useEffect(() => {
+    const handleIncomingHeartbeat = () => {
+      setIsHeartBurstActive(true)
+      api.getHeartbeatStats().then(res => {
+        if (res) setHeartbeatStats(res)
+      }).catch(() => null)
+    }
+    window.addEventListener("oursky_heartbeat_received", handleIncomingHeartbeat)
+    return () => window.removeEventListener("oursky_heartbeat_received", handleIncomingHeartbeat)
+  }, [])
+
   // Fetch real relationship status and summary stats from backend on mount
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        const [relRes, cdRes, starRes, tcRes, drRes, owRes, notifRes] = await Promise.all([
+        const [relRes, cdRes, starRes, tcRes, drRes, owRes, notifRes, hbRes] = await Promise.all([
           api.getRelationshipStatus().catch(() => null),
           api.getCountdowns().catch(() => []),
           api.getConstellationStars().catch(() => []),
@@ -61,7 +101,12 @@ export function Dashboard() {
           api.getDreams().catch(() => []),
           api.getOpenWhens().catch(() => []),
           api.getNotifications().catch(() => []),
+          api.getHeartbeatStats().catch(() => null),
         ])
+
+        if (hbRes) {
+          setHeartbeatStats(hbRes)
+        }
 
         if (Array.isArray(notifRes)) {
           const unread = notifRes.filter((n: any) => !n.isRead).length
@@ -312,6 +357,44 @@ export function Dashboard() {
         /* SCENARIO 2: CONNECTED DASHBOARD                                           */
         /* ========================================================================= */
         <main className="space-y-4">
+          {/* Floating Particle Overlay when sending or receiving heartbeat */}
+          <FloatingHeartBurst isActive={isHeartBurstActive} onComplete={() => setIsHeartBurstActive(false)} />
+
+          {/* Interactive Instant Heartbeat Pulse Widget */}
+          <section className="px-6 pt-1">
+            <Card className="bg-gradient-to-r from-pink-500/15 via-purple-500/10 to-rose-500/15 border-pink-500/30 p-3.5 shadow-md flex items-center justify-between relative overflow-hidden group">
+              <div className="flex items-center gap-3 relative z-10">
+                <button
+                  onClick={handleSendHeartbeat}
+                  disabled={isSendingHeartbeat}
+                  className="w-11 h-11 rounded-full bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer border-2 border-white/30 animate-pulse shrink-0"
+                  title="Click to Send Heartbeat Pulse to Partner 💓"
+                >
+                  <Heart className="w-5 h-5 fill-white" />
+                </button>
+                <div>
+                  <h3 className="text-xs font-extrabold text-text-primary flex items-center gap-1.5">
+                    Instant Heartbeat Pulse <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  </h3>
+                  <p className="text-[10px] text-text-secondary mt-0.5">
+                    {heartbeatStats.totalCount > 0 
+                      ? `${heartbeatStats.totalCount} heartbeats sent together ❤️` 
+                      : "Tap the heart to send a virtual hug! 💓"}
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSendHeartbeat}
+                disabled={isSendingHeartbeat}
+                size="sm"
+                className="rounded-full bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 border border-pink-500/40 text-xs font-bold px-3 h-8 z-10 shadow-xs shrink-0"
+              >
+                Send 💓
+              </Button>
+            </Card>
+          </section>
+
           {/* Countdown Widget */}
           <section className="px-6 py-1">
             {upcomingCountdown ? (
