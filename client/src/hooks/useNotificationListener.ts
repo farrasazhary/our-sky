@@ -30,6 +30,9 @@ export function useNotificationListener() {
         // Filter unread notifications
         const unreadList = list.filter((n: any) => !n.isRead)
 
+        // Dispatch real-time unread count update for UI badge animation
+        window.dispatchEvent(new CustomEvent("oursky_unread_count_updated", { detail: unreadList.length }))
+
         // Find brand new notifications not yet seen during this session
         for (const notif of unreadList) {
           const id = notif.id.toString()
