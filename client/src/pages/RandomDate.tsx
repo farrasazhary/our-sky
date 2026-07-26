@@ -62,37 +62,36 @@ export function RandomDate() {
     fetchStatus()
   }, [])
 
-  const handleRoll = () => {
+  const handleRoll = async () => {
     setIsRolling(true)
-    setTimeout(() => {
-      const nextIndex = (ideaIndex + 1) % LOCAL_DATE_IDEAS.length
-      setIdeaIndex(nextIndex)
-      setCurrentIdea(LOCAL_DATE_IDEAS[nextIndex])
-      setSkippedCount((prev) => prev + 1)
-      setIsRolling(false)
-    }, 250)
-  }
+    const nextIndex = ideaIndex + 1
 
-  const handleGenerateAiIdea = async (category: string = "ROMANTIC") => {
-    setIsRolling(true)
-    try {
-      const aiIdea = await api.generateAiDateIdea(category)
-      if (aiIdea) {
-        setCurrentIdea({
-          id: aiIdea.id,
-          title: aiIdea.title,
-          category: aiIdea.category || "AI Generated ✨",
-          duration: aiIdea.duration || "2 Jam",
-          isAiGenerated: true
-        })
-        setSkippedCount((prev) => prev + 1)
+    // Seamlessly fetch a fresh AI date idea when rolling
+    if (nextIndex >= LOCAL_DATE_IDEAS.length || (skippedCount > 2 && Math.random() > 0.5)) {
+      try {
+        const aiIdea = await api.generateAiDateIdea("ROMANTIC")
+        if (aiIdea) {
+          setCurrentIdea({
+            id: aiIdea.id,
+            title: aiIdea.title,
+            category: aiIdea.category || "Romantic",
+            duration: aiIdea.duration || "2 Jam",
+            isAiGenerated: true
+          })
+          setSkippedCount((prev) => prev + 1)
+          setIsRolling(false)
+          return
+        }
+      } catch (err) {
+        // Fallback to local list loop
       }
-    } catch (err) {
-      console.warn("AI Date Idea generation fallback:", err)
-      handleRoll()
-    } finally {
-      setIsRolling(false)
     }
+
+    const wrappedIndex = nextIndex % LOCAL_DATE_IDEAS.length
+    setIdeaIndex(wrappedIndex)
+    setCurrentIdea(LOCAL_DATE_IDEAS[wrappedIndex])
+    setSkippedCount((prev) => prev + 1)
+    setIsRolling(false)
   }
 
   const handlePropose = async () => {
@@ -281,15 +280,6 @@ export function RandomDate() {
                     </Card>
                   </motion.div>
                 </AnimatePresence>
-
-                {/* AI Surprise Date Generator Trigger Button */}
-                <Button
-                  onClick={() => handleGenerateAiIdea("ROMANTIC")}
-                  disabled={isRolling || isSubmitting}
-                  className="w-full h-11 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold shadow-md flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" /> AI Surprise Date Generator 🤖✨
-                </Button>
 
                 <div className="flex gap-3">
                   <Button onClick={handleRoll} disabled={isRolling || isSubmitting} variant="outline" className="flex-1 h-12 rounded-2xl border-border/60 text-xs font-semibold">
