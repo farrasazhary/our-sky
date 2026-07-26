@@ -149,19 +149,20 @@
   --ring: #7C5CFC;
 }
 
-/* ============================================
-   Base Styles
-   ============================================ */
-* {
-  border-color: var(--border-color);
+/* Disable native overscroll rubber-banding/bounce pulling on mobile PWA */
+html, body, #root {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Scrollable container overscroll containment */
+.no-bounce {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Hide native browser scrollbars globally for a clean mobile app feel */
