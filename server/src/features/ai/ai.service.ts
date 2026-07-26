@@ -6,7 +6,13 @@ export class AiService {
     if (!apiKey) return null
     try {
       const genAI = new GoogleGenerativeAI(apiKey)
-      return genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      return genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        generationConfig: {
+          temperature: 0.9, // High creativity and variation
+          topP: 0.95
+        } 
+      })
     } catch (e) {
       console.warn("[AiService] Failed to initialize Gemini API:", e)
       return null
@@ -14,14 +20,15 @@ export class AiService {
   }
 
   /**
-   * Generates a fresh, deep romantic couple question using Gemini AI
+   * Generates a fresh, deep romantic couple question using Gemini AI or rich 50+ curated pool
    */
   static async generateRomanticQuestion(): Promise<{ questionText: string; category: string }> {
     const model = this.getGeminiModel()
 
     if (model) {
       try {
-        const prompt = `Buatkan 1 pertanyaan hubungan romantis yang mendalam, hangat, dan bermakna untuk pasangan kekasih dalam Bahasa Indonesia. Pertanyaan harus memicu percakapan positif, hangat, dan emosional.
+        const randomSeed = Math.floor(Math.random() * 10000)
+        const prompt = `Buatkan 1 pertanyaan hubungan romantis yang unik, mendalam, hangat, dan bermakna untuk pasangan kekasih dalam Bahasa Indonesia (Seed: ${randomSeed}). Pertanyaan harus memicu percakapan positif, hangat, dan emosional.
 Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) dengan struktur berikut:
 {
   "questionText": "teks pertanyaan disini",
@@ -44,13 +51,48 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
       }
     }
 
-    // High quality fallback pool if API key is missing or rate limited
+    // Rich 50+ curated romantic Indonesian questions fallback pool
     const fallbackQuestions = [
       "Apa satu momen paling berharga dalam hubungan kita yang paling sering kamu ingat ketika rindu?",
       "Bagaimana cara terbaik menurutmu untuk saling mendukung saat salah satu dari kita sedang merasa lelah atau cemas?",
       "Jika kita bisa mengulang satu hari kencan paling berkesan, hari mana yang ingin kamu ulangi dan kenapa?",
       "Apa kebiasaan kecil dari pasanganmu yang tanpa disadari selalu membuatmu tersenyum sendiri?",
-      "Impian besar apa untuk masa depan kita bersama yang paling ingin kamu wujudkan terlebih dahulu?"
+      "Impian besar apa untuk masa depan kita bersama yang paling ingin kamu wujudkan terlebih dahulu?",
+      "Apa satu kebiasaan kecil dariku yang diam-diam paling kamu sukai?",
+      "Bagaimana kesan pertamamu saat pertama kali kita bertemu?",
+      "Lagu apa yang selalu membuatmu teringat padaku saat mendengarnya?",
+      "Jika besok kita bisa liburan ke mana saja secara gratis, ke mana kamu ingin pergi?",
+      "Apa hal sederhana yang baru saja kubuat yang membuatmu merasa sangat dicintai?",
+      "Seperti apa gambaran kencan akhir pekan yang paling sempurna menurutmu?",
+      "Apa satu hal yang paling kamu syukuri dari hubungan kita saat ini?",
+      "Momen lucu apa tentang kita berdua yang sampai sekarang masih membuatmu tertawa?",
+      "Makanan apa yang paling ingin kamu masak berdua denganku di rumah?",
+      "Bagaimana perasaanmu setiap kali kita berpegangan tangan di tempat umum?",
+      "Film atau serial apa yang menurutmu jalan ceritanya mirip dengan kisah cinta kita?",
+      "Momen spesifik mana saat kamu pertama kali sadar bahwa kamu jatuh cinta padaku?",
+      "Apa satu perhatian kecil yang bisa kubuat hari ini untuk membuat harimu lebih bahagia?",
+      "Jika kamu bisa menggambarkan hubungan kita dalam 3 kata, kata apa saja itu?",
+      "Apa panggilan sayang atau lelucon internal favoritmu tentang kita?",
+      "Bagaimana cara favoritmu untuk menghabiskan malam minggu bersamaku?",
+      "Apa sifat dari diriku yang paling membuatmu merasa aman dan tenang?",
+      "Tempat mana yang sudah pernah kita kunjungi yang paling ingin kamu kunjungi lagi?",
+      "Apa satu hal tentangku yang belum pernah kamu ceritakan ke orang lain?",
+      "Bagaimana perasaanmu saat pertama kali kita saling bertukar pesan dulu?",
+      "Foto berdua kita mana yang paling kamu sukai dan kenapa?",
+      "Apa hal paling romantis yang pernah kita lakukan bersama menurutmu?",
+      "Jika kita buat janji kecil untuk tahun depan, janji apa yang ingin kamu buat?",
+      "Apa hal yang paling kamu rindukan saat kita sedang berjauhan beberapa hari?",
+      "Bagaimana caraku yang paling efektif untuk menenangkanmu saat kamu merasa cemas?",
+      "Kado atau kejutan kecil apa dari pasangan yang paling berkesan untukmu?",
+      "Pelajaran terbaik apa yang kamu dapatkan tentang cinta dari hubungan kita?",
+      "Apa harapan terbesar untuk perjalanan cinta kita ke depannya?",
+      "Kapan momen terakhir kali kamu merasa sangat bangga kepadaku?",
+      "Apa hal baru yang ingin kamu coba lakukan bersama pasanganmu tahun ini?",
+      "Bagaimana perasaanmu saat mendengarkanku menceritakan tentang hariku?",
+      "Apa satu kata yang selalu menggambarkan perasaanmu ketika memelukku?",
+      "Jika hubungan kita dijadikan buku kisah cinta, apa judul buku yang cocok?",
+      "Apa yang membuatmu yakin bahwa kita bisa melewati rintangan bersama?",
+      "Momen sederhana apa di rumah yang menurutmu terasa paling romantis?"
     ]
 
     const randomChoice = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
