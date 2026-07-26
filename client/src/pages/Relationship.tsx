@@ -1,8 +1,8 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Settings, Calendar, Award, LogOut, Shield, Heart, Camera, Loader2, User as UserIcon, Sparkles } from "lucide-react"
+import { Settings, Calendar, Award, LogOut, Shield, Heart, Camera, Loader2, User as UserIcon, Sparkles, Image, MessageCircle, Flame } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/services/api"
@@ -17,6 +17,14 @@ export function Relationship() {
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
+  // Real-time relationship stats state
+  const [stats, setStats] = useState({
+    daysTogether: 0,
+    memoriesCount: 0,
+    questionsCount: 0,
+    dreamsCount: 0
+  })
+
   const isConnected = !!relationship && !!relationship.partner
   const userName = user?.fullName || "User"
   const partnerName = relationship?.partner?.fullName || "Partner"
@@ -29,6 +37,43 @@ export function Relationship() {
         year: "numeric"
       })
     : "Not set"
+
+  // Fetch real-time stats from backend
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const [memoriesRes, historyRes, dreamsRes] = await Promise.all([
+          api.getMemories().catch(() => []),
+          api.getQuestionHistory().catch(() => []),
+          api.getDreams().catch(() => [])
+        ])
+
+        // Calculate Days Together
+        let days = 0
+        if (rawDate) {
+          const startDate = new Date(rawDate)
+          const today = new Date()
+          const diffTime = Math.abs(today.getTime() - startDate.getTime())
+          days = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+        }
+
+        const memCount = Array.isArray(memoriesRes) ? memoriesRes.length : 0
+        const qCount = Array.isArray(historyRes) ? historyRes.length : 0
+        const dCount = Array.isArray(dreamsRes) ? dreamsRes.filter((d: any) => d.status === "COMPLETED").length : 0
+
+        setStats({
+          daysTogether: days,
+          memoriesCount: memCount,
+          questionsCount: qCount,
+          dreamsCount: dCount
+        })
+      } catch (err) {
+        console.warn("Failed to load love stats:", err)
+      }
+    }
+
+    fetchStats()
+  }, [rawDate])
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -61,7 +106,7 @@ export function Relationship() {
       </header>
 
       <div className="px-6 pt-5 space-y-6">
-        {/* Couple Profile Card with Custom Banner */}
+        {/* Couple Profile Card with Custom Banner (100% UNTOUCHED HERO CARD) */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-surface border-border/50 overflow-hidden relative shadow-sm">
             {/* Banner Background Area */}
@@ -79,7 +124,7 @@ export function Relationship() {
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-surface/80 via-transparent to-black/20 pointer-events-none" />
 
-              {/* Upload Cover Camera Button (Restored to top-3 right-3) */}
+              {/* Upload Cover Camera Button */}
               <button
                 onClick={() => coverInputRef.current?.click()}
                 disabled={isUploadingCover}
@@ -101,7 +146,7 @@ export function Relationship() {
 
             {/* Overlapping Avatars & Heart Connector Section */}
             <div className="-mt-10 flex justify-center items-start gap-6 relative z-10 px-4">
-              {/* User 1 Column (Avatar + Nickname 100% Centered) */}
+              {/* User 1 Column */}
               <div 
                 onClick={() => setIsEditProfileOpen(true)}
                 className="flex flex-col items-center justify-center text-center cursor-pointer group w-28"
@@ -133,7 +178,7 @@ export function Relationship() {
                 <Heart className="w-4 h-4 text-primary fill-primary/40" />
               </div>
 
-              {/* Partner Column (Avatar + Nickname 100% Centered) */}
+              {/* Partner Column */}
               <div className="flex flex-col items-center justify-center text-center w-28">
                 <div className="w-20 h-20 rounded-full border-4 border-surface shadow-xl bg-surface overflow-hidden relative flex-shrink-0">
                   {relationship?.partner?.profilePicture && (relationship.partner.profilePicture.startsWith("/") || relationship.partner.profilePicture.startsWith("http")) ? (
@@ -185,7 +230,66 @@ export function Relationship() {
           </Card>
         </motion.div>
 
-        {/* Relationship Stats & Info */}
+        {/* NEW FEATURE: Love Stats & Activity Counter Grid */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="space-y-3">
+          <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2 ml-1">Love Stats & Activity</h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {/* Days Together */}
+            <Card className="bg-surface/90 border-border/50 shadow-xs relative overflow-hidden group hover:border-primary/50 transition-colors">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                  <Flame className="w-5 h-5 text-pink-400 fill-pink-400" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-text-tertiary font-medium block">Hari Bersama</span>
+                  <span className="text-sm font-bold text-text-primary">{stats.daysTogether} Hari 💖</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Shared Memories */}
+            <Card onClick={() => navigate('/memory')} className="bg-surface/90 border-border/50 shadow-xs relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
+                  <Image className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-text-tertiary font-medium block">Memori Foto</span>
+                  <span className="text-sm font-bold text-text-primary">{stats.memoriesCount} Foto</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Questions Answered */}
+            <Card onClick={() => navigate('/question')} className="bg-surface/90 border-border/50 shadow-xs relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
+                  <MessageCircle className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-text-tertiary font-medium block">Pertanyaan</span>
+                  <span className="text-sm font-bold text-text-primary">{stats.questionsCount} Dijawab</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dreams Completed */}
+            <Card onClick={() => navigate('/dream-board')} className="bg-surface/90 border-border/50 shadow-xs relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-400/15 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Award className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-text-tertiary font-medium block">Impian Terwujud</span>
+                  <span className="text-sm font-bold text-text-primary">{stats.dreamsCount} Impian</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+
+        {/* Relationship Milestones */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
           <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2 ml-1">Relationship Milestones</h3>
           
