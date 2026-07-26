@@ -43,6 +43,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpeg}'],
         navigateFallbackDenylist: [/^\/api/, /^\/uploads/, /^\/storage/]
       }

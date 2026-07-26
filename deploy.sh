@@ -15,12 +15,13 @@ git reset --hard origin/main
 echo "⚙️ Building Backend Server..."
 cd server
 npm install --production=false
+npx prisma generate
 npm run build
 npx prisma db push
 
 # Restart or Start PM2 Process
 echo "🔄 Restarting Backend Service via PM2..."
-pm2 restart oursky-backend || pm2 start dist/server.js --name "oursky-backend"
+pm2 restart oursky-backend --update-env || pm2 start dist/server.js --name "oursky-backend"
 
 # 3. Build Frontend Application
 echo "🎨 Building Frontend React PWA Application..."
