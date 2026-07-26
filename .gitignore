@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production build outputs
+dist/
+client/dist/
+server/dist/
+
+# Environment variables
+.env
+server/.env
+client/.env
+
+# Server storage & uploaded files (preserve directory)
+server/storage/*
+!server/storage/.gitkeep
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

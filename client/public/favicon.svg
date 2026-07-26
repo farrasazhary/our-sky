@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="50%" stop-color="#1A1B35" />
+      <stop offset="100%" stop-color="#2D1A3C" />
+    </linearGradient>
+    <linearGradient id="moon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166" />
+      <stop offset="100%" stop-color="#F4A261" />
+    </linearGradient>
+    <linearGradient id="heart" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF758F" />
+      <stop offset="100%" stop-color="#FF4D6D" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded Base Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bg)" />
+  
+  <!-- Stars & Constellations -->
+  <circle cx="120" cy="100" r="3" fill="#FFFFFF" opacity="0.8" />
+  <circle cx="380" cy="140" r="2.5" fill="#FFFFFF" opacity="0.9" />
+  <circle cx="420" cy="380" r="3" fill="#FFFFFF" opacity="0.7" />
+  <circle cx="90" cy="390" r="2" fill="#FFFFFF" opacity="0.8" />
+  <circle cx="260" cy="70" r="4" fill="#FFD166" opacity="0.9" />
+  
+  <!-- Crescent Moon -->
+  <path d="M 280 140 A 130 130 0 1 0 390 310 A 150 150 0 1 1 280 140 Z" fill="url(#moon)" />
+  
+  <!-- Glowing Heart in Center -->
+  <path d="M 256 340 C 256 340 170 270 170 205 C 170 165 200 140 235 140 C 250 140 264 150 270 160 C 276 150 290 140 305 140 C 340 140 370 165 370 205 C 370 270 256 340 256 340 Z" fill="url(#heart)" transform="scale(0.7) translate(110, 80)" />
+</svg>

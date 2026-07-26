@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum RelationshipStatus {
+  ACTIVE
+  ENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum DreamStatus {
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum TimeCapsuleStatus {
+  LOCKED
+  OPENED
+}
+
+enum OpenWhenCategory {
+  MISS_YOU
+  SAD
+  HAPPY
+  MOTIVATION
+  ANNIVERSARY
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model User {
+  id             BigInt   @id @default(autoincrement())
+  fullName       String   @map("full_name") @db.VarChar(100)
+  email          String   @unique @db.VarChar(255)
+  password       String   @db.VarChar(255)
+  profilePicture String?  @map("profile_picture") @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  relationshipsAsUserOne Relationship[]    @relation("UserOne")
+  relationshipsAsUserTwo Relationship[]    @relation("UserTwo")
+  sentInvitations        Invitation[]      @relation("SentInvitations")
+  receivedInvitations    Invitation[]      @relation("ReceivedInvitations")
+  questionAnswers        QuestionAnswer[]
+  notifications          Notification[]
+  openWhens              OpenWhen[]
+
+  @@map("users")
+}
+
+model Relationship {
+  id          BigInt             @id @default(autoincrement())
+  userOneId   BigInt             @map("user_one_id")
+  userTwoId   BigInt             @map("user_two_id")
+  status      RelationshipStatus @default(ACTIVE)
+  startedAt   DateTime           @map("started_at") @db.Date
+  coverImage  String?            @map("cover_image") @db.VarChar(255)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  userOne            User                @relation("UserOne", fields: [userOneId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  userTwo            User                @relation("UserTwo", fields: [userTwoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  memories           Memory[]
+  questionAnswers    QuestionAnswer[]
+  dreams             Dream[]
+  importantDays      ImportantDay[]
+  timeCapsules       TimeCapsule[]
+  openWhens          OpenWhen[]
+  relationshipEvents RelationshipEvent[]
+
+  @@index([userOneId])
+  @@index([userTwoId])
+  @@index([status])
+  @@map("relationships")
+}
+
+model Invitation {
+  id             BigInt           @id @default(autoincrement())
+  senderId       BigInt           @map("sender_id")
+  receiverId     BigInt?          @map("receiver_id")
+  status         InvitationStatus @default(PENDING)
+  invitationCode String           @unique @map("invitation_code") @db.VarChar(50)
+  expiresAt      DateTime?        @map("expires_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  sender   User  @relation("SentInvitations", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiver User? @relation("ReceivedInvitations", fields: [receiverId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+  @@map("invitations")
+}
+
+model Memory {
+  id             BigInt   @id @default(autoincrement())
+  relationshipId BigInt   @map("relationship_id")
+  title          String   @db.VarChar(150)
+  description    String?  @db.Text
+  memoryDate     DateTime @map("memory_date") @db.Date
+  location       String?  @db.VarChar(150)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  relationship Relationship  @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  media        MemoryMedia[]
+
+  @@index([relationshipId])
+  @@index([memoryDate])
+  @@map("memories")
+}
+
+model MemoryMedia {
+  id         BigInt    @id @default(autoincrement())
+  memoryId   BigInt    @map("memory_id")
+  fileUrl    String    @map("file_url") @db.VarChar(255)
+  mediaType  MediaType @default(IMAGE) @map("media_type")
+  uploadedAt DateTime  @default(now()) @map("uploaded_at")
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([memoryId])
+  @@map("memory_media")
+}
+
+model Question {
+  id           BigInt   @id @default(autoincrement())
+  questionText String   @map("question_text") @db.Text
+  category     String   @default("General") @db.VarChar(50)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  answers QuestionAnswer[]
+
+  @@index([isActive])
+  @@map("questions")
+}
+
+model QuestionAnswer {
+  id             BigInt   @id @default(autoincrement())
+  questionId     BigInt   @map("question_id")
+  relationshipId BigInt   @map("relationship_id")
+  userId         BigInt   @map("user_id")
+  answerText     String   @map("answer_text") @db.Text
+  answeredAt     DateTime @default(now()) @map("answered_at")
+
+  question     Question     @relation(fields: [questionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([questionId, relationshipId, userId])
+  @@index([questionId])
+  @@index([relationshipId])
+  @@index([userId])
+  @@map("question_answers")
+}
+
+model Dream {
+  id             BigInt      @id @default(autoincrement())
+  relationshipId BigInt      @map("relationship_id")
+  title          String      @db.VarChar(150)
+  description    String?     @db.Text
+  targetDate     DateTime?   @map("target_date") @db.Date
+  category       String      @default("Travel") @db.VarChar(50)
+  status         DreamStatus @default(IN_PROGRESS)
+  coverImage     String?     @map("cover_image") @db.VarChar(255)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  relationship Relationship     @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  milestones   DreamMilestone[]
+
+  @@index([relationshipId])
+  @@index([status])
+  @@map("dreams")
+}
+
+model DreamMilestone {
+  id          BigInt   @id @default(autoincrement())
+  dreamId     BigInt   @map("dream_id")
+  title       String   @db.VarChar(150)
+  isCompleted Boolean  @default(false) @map("is_completed")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dream Dream @relation(fields: [dreamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([dreamId])
+  @@map("dream_milestones")
+}
+
+model ImportantDay {
+  id             BigInt   @id @default(autoincrement())
+  relationshipId BigInt   @map("relationship_id")
+  title          String   @db.VarChar(150)
+  eventDate      DateTime @map("event_date") @db.Date
+  category       String   @default("Anniversary") @db.VarChar(50)
+  repeatRule     String   @default("Yearly") @map("repeat_rule") @db.VarChar(20)
+  description    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([relationshipId])
+  @@index([eventDate])
+  @@map("important_days")
+}
+
+model TimeCapsule {
+  id             BigInt            @id @default(autoincrement())
+  relationshipId BigInt            @map("relationship_id")
+  title          String            @db.VarChar(150)
+  message        String            @db.Text
+  openDate       DateTime          @map("open_date")
+  status         TimeCapsuleStatus @default(LOCKED)
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([relationshipId])
+  @@index([openDate])
+  @@index([status])
+  @@map("time_capsules")
+}
+
+model OpenWhen {
+  id             BigInt           @id @default(autoincrement())
+  relationshipId BigInt           @map("relationship_id")
+  senderId       BigInt?          @map("sender_id")
+  title          String           @db.VarChar(150)
+  category       OpenWhenCategory
+  message        String           @db.Text
+  isOpened       Boolean          @default(false) @map("is_opened")
+  openedAt       DateTime?        @map("opened_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  sender       User?        @relation(fields: [senderId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([relationshipId])
+  @@index([senderId])
+  @@index([category])
+  @@map("open_whens")
+}
+
+model RelationshipEvent {
+  id             BigInt   @id @default(autoincrement())
+  relationshipId BigInt   @map("relationship_id")
+  eventType      String   @map("event_type") @db.VarChar(50)
+  sourceEntity   String   @map("source_entity") @db.VarChar(50)
+  sourceId       BigInt   @map("source_id")
+  description    String   @db.VarChar(255)
+  eventDate      DateTime @default(now()) @map("event_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([relationshipId])
+  @@index([eventType])
+  @@index([eventDate])
+  @@map("relationship_events")
+}
+
+model Notification {
+  id               BigInt   @id @default(autoincrement())
+  userId           BigInt   @map("user_id")
+  title            String   @db.VarChar(150)
+  message          String   @db.VarChar(255)
+  notificationType String   @default("INFO") @map("notification_type") @db.VarChar(50)
+  isRead           Boolean  @default(false) @map("is_read")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}

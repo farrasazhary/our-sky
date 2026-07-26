@@ -1,0 +1,185 @@
+
+Enum relationship_status {
+  PENDING
+  ACTIVE
+  ENDED
+}
+
+Enum invitation_status {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+Enum media_type {
+  IMAGE
+  VIDEO
+}
+
+Enum dream_status {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+Enum capsule_status {
+  LOCKED
+  OPENED
+}
+
+Enum open_when_category {
+  MISS_YOU
+  SAD
+  HAPPY
+  MOTIVATION
+  ANNIVERSARY
+  OTHER
+}
+
+Table users {
+  id bigint [pk, increment]
+  full_name varchar(100)
+  email varchar(255) [not null, unique]
+  password varchar(255)
+  profile_picture varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table relationships {
+  id bigint [pk, increment]
+  user_one_id bigint [not null]
+  user_two_id bigint [not null]
+  status relationship_status
+  started_at date
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table invitations {
+  id bigint [pk, increment]
+  sender_id bigint
+  receiver_id bigint
+  invitation_code varchar(100) [unique]
+  status invitation_status
+  expires_at datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table memories {
+  id bigint [pk, increment]
+  relationship_id bigint
+  title varchar(150)
+  description text
+  memory_date date
+  location varchar(150)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table memory_media {
+  id bigint [pk, increment]
+  memory_id bigint
+  file_url varchar(255)
+  media_type media_type
+  uploaded_at timestamp
+}
+
+Table dreams {
+  id bigint [pk, increment]
+  relationship_id bigint
+  title varchar(150)
+  description text
+  target_date date
+  status dream_status
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table important_days {
+  id bigint [pk, increment]
+  relationship_id bigint
+  title varchar(150)
+  event_date date
+  description text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table time_capsules {
+  id bigint [pk, increment]
+  relationship_id bigint
+  title varchar(150)
+  message text
+  open_date datetime
+  status capsule_status
+  created_at timestamp
+}
+
+Table open_whens {
+  id bigint [pk, increment]
+  relationship_id bigint
+  title varchar(150)
+  category open_when_category
+  message text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table questions {
+  id bigint [pk, increment]
+  question_text text
+  is_active boolean
+  created_at timestamp
+}
+
+Table question_answers {
+  id bigint [pk, increment]
+  question_id bigint
+  relationship_id bigint
+  user_id bigint
+  answer_text text
+  answered_at datetime
+}
+
+Table relationship_events {
+  id bigint [pk, increment]
+  relationship_id bigint
+  event_type varchar(100)
+  source_entity varchar(100)
+  source_id bigint
+  description text
+  event_date datetime
+  created_at timestamp
+}
+
+Table notifications {
+  id bigint [pk, increment]
+  user_id bigint
+  title varchar(150)
+  message text
+  notification_type varchar(100)
+  is_read boolean
+  created_at timestamp
+}
+
+Ref: relationships.user_one_id > users.id
+Ref: relationships.user_two_id > users.id
+Ref: invitations.sender_id > users.id
+Ref: invitations.receiver_id > users.id
+Ref: notifications.user_id > users.id
+Ref: question_answers.user_id > users.id
+
+Ref: memories.relationship_id > relationships.id
+Ref: dreams.relationship_id > relationships.id
+Ref: important_days.relationship_id > relationships.id
+Ref: time_capsules.relationship_id > relationships.id
+Ref: open_whens.relationship_id > relationships.id
+Ref: relationship_events.relationship_id > relationships.id
+Ref: question_answers.relationship_id > relationships.id
+
+Ref: memory_media.memory_id > memories.id
+Ref: question_answers.question_id > questions.id
