@@ -11,7 +11,8 @@ import {
   Mail, 
   Lock, 
   Sparkles,
-  Dices
+  Dices,
+  ExternalLink
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/services/api"
@@ -21,6 +22,7 @@ interface NotificationItem {
   title: string
   message: string
   type: string
+  targetUrl?: string
   isRead: boolean
   createdAt: string
 }
@@ -47,6 +49,7 @@ function getRelativeTime(dateStr: string): string {
 function getTypeIcon(type: string) {
   switch (type.toUpperCase()) {
     case "MEMORY":
+    case "MEMORY_CREATED":
       return <Camera className="w-4 h-4 text-primary" />
     case "QUESTION":
       return <MessageCircle className="w-4 h-4 text-secondary" />
@@ -107,6 +110,24 @@ export function Notifications() {
     } finally {
       setIsMarkingAll(false)
     }
+  }
+
+  const handleNotificationClick = async (n: NotificationItem) => {
+    if (!n.isRead) {
+      handleMarkRead(n.id)
+    }
+
+    const target = n.targetUrl || (
+      n.type === "HEARTBEAT" ? "/dashboard" :
+      n.type === "QUESTION" ? "/question" :
+      n.type === "MEMORY" || n.type === "MEMORY_CREATED" ? "/memory" :
+      n.type === "RANDOM_DATE" ? "/random-date" :
+      n.type === "DREAM" || n.type === "DREAM_COMPLETED" ? "/dream-board" :
+      n.type === "TIME_CAPSULE" ? "/time-capsule" :
+      n.type === "OPEN_WHEN" ? "/open-when" : "/dashboard"
+    )
+
+    navigate(target)
   }
 
   const unreadCount = notifications.filter(n => !n.isRead).length
@@ -200,11 +221,11 @@ export function Notifications() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                onClick={() => !n.isRead && handleMarkRead(n.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
+                onClick={() => handleNotificationClick(n)}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
                   n.isRead
                     ? "bg-surface/50 border-border/40 opacity-75 hover:opacity-100"
-                    : "bg-surface border-primary/40 shadow-sm ring-1 ring-primary/20"
+                    : "bg-surface border-primary/40 shadow-sm ring-1 ring-primary/20 hover:border-primary/70"
                 }`}
               >
                 <div className="flex items-start gap-3.5">
@@ -218,8 +239,9 @@ export function Notifications() {
                   {/* Body Content */}
                   <div className="flex-1 min-w-0 pr-4">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className={`text-xs font-bold truncate ${n.isRead ? "text-text-secondary" : "text-text-primary"}`}>
+                      <h4 className={`text-xs font-bold truncate flex items-center gap-1.5 ${n.isRead ? "text-text-secondary" : "text-text-primary"}`}>
                         {n.title}
+                        <ExternalLink className="w-3 h-3 text-text-tertiary group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
                       </h4>
                       <span className="text-[10px] text-text-tertiary flex-shrink-0 font-medium">
                         {getRelativeTime(n.createdAt)}

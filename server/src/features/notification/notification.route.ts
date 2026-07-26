@@ -6,14 +6,39 @@ import { asyncHandler } from "../../shared/utils/asyncHandler"
 import { VAPID_PUBLIC_KEY } from "../../config/webpush.config"
 import webpush from "web-push"
 
+export function getDefaultTargetUrl(type: string): string {
+  switch (type.toUpperCase()) {
+    case "HEARTBEAT":
+      return "/dashboard"
+    case "QUESTION":
+      return "/question"
+    case "MEMORY":
+    case "MEMORY_CREATED":
+      return "/memory"
+    case "RANDOM_DATE":
+      return "/random-date"
+    case "DREAM":
+    case "DREAM_COMPLETED":
+      return "/dream-board"
+    case "TIME_CAPSULE":
+      return "/time-capsule"
+    case "OPEN_WHEN":
+      return "/open-when"
+    default:
+      return "/notifications"
+  }
+}
+
 export class NotificationRepository {
-  static async createNotification(userId: bigint, title: string, message: string, notificationType: string = "INFO") {
+  static async createNotification(userId: bigint, title: string, message: string, notificationType: string = "INFO", targetUrl?: string) {
+    const finalTargetUrl = targetUrl || getDefaultTargetUrl(notificationType)
     return prisma.notification.create({
       data: {
         userId,
         title,
         message,
-        notificationType
+        notificationType,
+        targetUrl: finalTargetUrl
       }
     })
   }
@@ -77,6 +102,7 @@ export class NotificationService {
       title: n.title,
       message: n.message,
       type: n.notificationType,
+      targetUrl: n.targetUrl || getDefaultTargetUrl(n.notificationType),
       isRead: n.isRead,
       createdAt: n.createdAt
     }))
@@ -107,15 +133,19 @@ export class NotificationService {
   /**
    * Dispatches background Web Push to user's registered devices via Google FCM / Apple APNs
    */
-  static async sendWebPushToUser(userId: bigint, payload: { title: string; message: string; type?: string }) {
+  static async sendWebPushToUser(userId: bigint, payload: { title: string; message: string; type?: string; targetUrl?: string }) {
     try {
       const subs = await NotificationRepository.findUserSubscriptions(userId)
       if (subs.length === 0) return
 
+      const notifType = payload.type || "INFO"
+      const targetUrl = payload.targetUrl || getDefaultTargetUrl(notifType)
+
       const pushPayload = JSON.stringify({
         title: payload.title,
         message: payload.message,
-        type: payload.type || "INFO",
+        type: notifType,
+        targetUrl,
         sentAt: new Date()
       })
 
@@ -145,7 +175,7 @@ export class NotificationService {
   /**
    * Helper method to send a notification to the partner in a relationship
    */
-  static async notifyPartner(relationshipId: bigint, senderUserId: bigint, title: string, message: string, notificationType: string = "INFO") {
+  static async notifyPartner(relationshipId: bigint, senderUserId: bigint, title: string, message: string, notificationType: string = "INFO", targetUrl?: string) {
     try {
       const rel = await prisma.relationship.findUnique({
         where: { id: relationshipId }
@@ -154,12 +184,13 @@ export class NotificationService {
 
       // Use string comparison to safely compare BigInt / string IDs
       const recipientUserId = rel.userOneId.toString() === senderUserId.toString() ? rel.userTwoId : rel.userOneId
-      
+      const finalTargetUrl = targetUrl || getDefaultTargetUrl(notificationType)
+
       // 1. Create DB notification
-      const dbNotif = await NotificationRepository.createNotification(recipientUserId, title, message, notificationType)
+      const dbNotif = await NotificationRepository.createNotification(recipientUserId, title, message, notificationType, finalTargetUrl)
 
       // 2. Dispatch Background Web Push safely without blocking response
-      this.sendWebPushToUser(recipientUserId, { title, message, type: notificationType }).catch(e => {
+      this.sendWebPushToUser(recipientUserId, { title, message, type: notificationType, targetUrl: finalTargetUrl }).catch(e => {
         console.warn("Background Web Push warning:", e)
       })
 

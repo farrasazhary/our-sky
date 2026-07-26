@@ -15,7 +15,7 @@ self.addEventListener("push", function (event) {
       tag: `oursky-push-${Date.now()}`,
       renotify: true,
       data: {
-        url: notifType === "HEARTBEAT" ? "/dashboard" : "/notifications",
+        url: payload.targetUrl || (notifType === "HEARTBEAT" ? "/dashboard" : "/notifications"),
         type: notifType
       },
       vibrate: notifType === "HEARTBEAT" ? [120, 80, 120, 300, 120, 80, 120] : [100, 50, 100]

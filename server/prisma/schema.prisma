@@ -296,6 +296,7 @@ model Notification {
   title            String   @db.VarChar(150)
   message          String   @db.VarChar(255)
   notificationType String   @default("INFO") @map("notification_type") @db.VarChar(50)
+  targetUrl        String?  @map("target_url") @db.VarChar(255)
   isRead           Boolean  @default(false) @map("is_read")
   createdAt        DateTime @default(now()) @map("created_at")
 
