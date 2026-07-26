@@ -18,7 +18,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="sticky bottom-0 shrink-0 w-full h-16 bg-surface/95 backdrop-blur-md border-t border-border/50 flex justify-around items-center px-2 z-50 select-none pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-md w-full h-16 bg-surface/95 backdrop-blur-md border-t border-border/50 flex justify-around items-center px-2 z-50 select-none pb-[env(safe-area-inset-bottom)]">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path
         const Icon = item.icon

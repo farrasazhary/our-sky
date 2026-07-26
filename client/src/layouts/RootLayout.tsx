@@ -8,10 +8,10 @@ export function RootLayout() {
   useNotificationListener()
 
   return (
-    <div className="dark h-[100dvh] w-full bg-background text-text-primary selection:bg-primary/30 flex justify-center items-center overflow-hidden overscroll-none">
-      <main className="w-full max-w-md h-[100dvh] bg-background shadow-2xl overflow-hidden relative border-x border-border/40 flex flex-col overscroll-none">
+    <div className="dark min-h-screen w-full bg-background text-text-primary selection:bg-primary/30 flex justify-center items-center">
+      <main className="w-full max-w-md min-h-screen bg-background shadow-2xl relative border-x border-border/40 flex flex-col pb-16">
         {/* Scrollable Page Content Container */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden no-bounce overscroll-contain">
+        <div className="flex-1">
           <Outlet />
         </div>
         
