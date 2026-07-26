@@ -2,94 +2,43 @@ import { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Settings, LogOut, Heart, Calendar, Shield, Award, User as UserIcon, Camera, Loader2 } from "lucide-react"
+import { Settings, Calendar, Award, LogOut, Shield, Heart, Camera, Loader2, User as UserIcon, Sparkles, Edit3 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { api } from "@/services/api"
 import { EditProfileModal } from "@/components/modals/EditProfileModal"
 import { EditConnectedDateModal } from "@/components/modals/EditConnectedDateModal"
-import { api } from "@/services/api"
-
-/**
- * Frontend Banner Cover Image Compression Helper
- * Resizes banner image on HTML5 Canvas to max 1200px width, converting to WebP at 80% quality.
- */
-async function compressBannerImage(file: File, maxDim = 1200, quality = 0.8): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (e) => {
-      const img = new Image()
-      img.src = e.target?.result as string
-      img.onload = () => {
-        let width = img.width
-        let height = img.height
-
-        if (width > maxDim) {
-          height = Math.round((height * maxDim) / width)
-          width = maxDim
-        }
-
-        const canvas = document.createElement("canvas")
-        canvas.width = width
-        canvas.height = height
-
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return reject(new Error("Failed to get canvas context"))
-
-        ctx.drawImage(img, 0, 0, width, height)
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob)
-            else reject(new Error("Canvas compression failed"))
-          },
-          "image/webp",
-          quality
-        )
-      }
-      img.onerror = (err) => reject(err)
-    }
-    reader.onerror = (err) => reject(err)
-  })
-}
 
 export function Relationship() {
   const navigate = useNavigate()
-  const { user, isConnected, relationship, logout, refreshStatus } = useAuth()
+  const { user, relationship, logout, refreshStatus } = useAuth()
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [isEditDateOpen, setIsEditDateOpen] = useState(false)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
-  // Smart naming logic: Avoid generic "User" fallback
-  const getDisplayName = (fullName?: string, email?: string) => {
-    if (fullName && fullName.trim() !== "" && fullName.trim() !== "User") {
-      return fullName
-    }
-    if (email && email.includes("@")) {
-      const prefix = email.split("@")[0]
-      return prefix.charAt(0).toUpperCase() + prefix.slice(1)
-    }
-    return "My Profile"
-  }
+  const isConnected = !!relationship && !!relationship.partner
+  const userName = user?.fullName || "User"
+  const partnerName = relationship?.partner?.fullName || "Partner"
 
-  const userName = getDisplayName(user?.fullName, user?.email)
-  const partnerName = relationship?.partner?.fullName || (isConnected ? "Partner" : "Not Connected")
-  const startedAt = relationship?.startedAt 
-    ? new Date(relationship.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
-    : "Set Date"
+  const startedAt = relationship?.relationshipDate 
+    ? new Date(relationship.relationshipDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      })
+    : "Not set"
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setIsUploadingCover(true)
     try {
-      const compressedBlob = await compressBannerImage(file, 1200, 0.8)
-      await api.updateRelationshipCover(compressedBlob)
+      setIsUploadingCover(true)
+      await api.updateRelationshipCover(file)
       await refreshStatus()
     } catch (err: any) {
-      console.warn("Failed to upload cover photo:", err.message)
+      alert(err.message || "Failed to update cover banner")
     } finally {
       setIsUploadingCover(false)
     }
@@ -101,42 +50,49 @@ export function Relationship() {
   }
 
   return (
-    <div className="flex flex-col min-h-full pb-20 bg-background">
-      <header className="p-6 pt-12 pb-4 flex justify-between items-center sticky top-0 bg-background/90 backdrop-blur-md z-30 border-b border-border/30">
-        <h1 className="text-2xl font-bold text-text-primary">Profile</h1>
-        <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-text-secondary hover:text-text-primary">
+    <div className="flex flex-col min-h-screen pb-24 bg-background selection:bg-primary/30">
+      {/* Sleek Professional Sticky Header */}
+      <header className="px-6 py-4 flex justify-between items-center sticky top-0 bg-background/90 backdrop-blur-md z-30 border-b border-border/30 shadow-xs">
+        <h1 className="text-xl font-bold text-text-primary tracking-tight">Profile</h1>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/settings')} 
+          className="text-text-secondary hover:text-text-primary rounded-full hover:bg-surfaceVariant/60 transition-colors"
+          title="App Settings"
+        >
           <Settings className="w-5 h-5" />
         </Button>
       </header>
 
-      <div className="px-6 space-y-6">
+      <div className="px-5 space-y-6 pt-4">
         {/* Couple Profile Card with Custom Banner */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="bg-surface border-border/50 overflow-hidden relative shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+          <Card className="bg-surface/90 border-border/60 overflow-hidden relative shadow-lg rounded-3xl ring-1 ring-primary/10">
             {/* Banner Background Area */}
-            <div className="h-32 relative overflow-hidden bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 group">
+            <div className="h-44 sm:h-48 relative overflow-hidden bg-gradient-to-br from-primary/30 via-surface to-secondary/20 group">
               {relationship?.coverImage ? (
                 <img 
                   src={relationship.coverImage} 
                   alt="Relationship Cover" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30" />
               )}
               
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-surface/80 via-transparent to-black/20 pointer-events-none" />
+              {/* Cinematic Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-black/30 pointer-events-none" />
 
-              {/* Upload Cover Camera Button */}
+              {/* Upload Cover Camera Button (Placed at Bottom Right for Professional Framing) */}
               <button
                 onClick={() => coverInputRef.current?.click()}
                 disabled={isUploadingCover}
-                className="absolute top-3 right-3 bg-black/40 hover:bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all opacity-80 group-hover:opacity-100 shadow-sm border border-white/15 cursor-pointer z-0"
+                className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all shadow-md border border-white/20 cursor-pointer z-10"
                 title="Change Cover Banner Photo"
               >
                 {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">Cover Photo</span>
+                <span>Change Banner</span>
               </button>
 
               <input 
@@ -149,14 +105,14 @@ export function Relationship() {
             </div>
 
             {/* Overlapping Avatars & Heart Connector Section */}
-            <div className="-mt-10 flex justify-center items-start gap-6 relative z-10 px-4">
+            <div className="-mt-14 flex justify-center items-start gap-5 relative z-10 px-4">
               {/* User 1 Column (Avatar + Nickname) */}
               <div 
                 onClick={() => setIsEditProfileOpen(true)}
                 className="flex flex-col items-center cursor-pointer group w-24"
                 title="Click to Edit Profile"
               >
-                <div className="w-20 h-20 rounded-full border-4 border-surface shadow-xl bg-surface overflow-hidden relative flex-shrink-0 transition-transform active:scale-95 group-hover:border-primary/60">
+                <div className="w-20 h-20 rounded-full ring-4 ring-surface shadow-2xl bg-surface overflow-hidden relative flex-shrink-0 transition-transform active:scale-95 group-hover:ring-primary/60 border border-primary/20">
                   {user?.profilePicture && (user.profilePicture.startsWith("/") || user.profilePicture.startsWith("http")) ? (
                     <img 
                       src={user.profilePicture} 
@@ -172,19 +128,19 @@ export function Relationship() {
                     </div>
                   )}
                 </div>
-                <span className="font-bold text-sm text-text-primary group-hover:text-primary transition-colors mt-2 text-center truncate w-full">
-                  {userName}
+                <span className="font-bold text-xs text-text-primary group-hover:text-primary transition-colors mt-2 text-center truncate w-full flex items-center justify-center gap-1">
+                  {userName} <Edit3 className="w-3 h-3 text-text-tertiary group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                 </span>
               </div>
 
-              {/* Heart Connector Badge (Aligned with avatar center) */}
-              <div className="bg-surface p-2 rounded-full shadow-md border border-border/50 flex items-center justify-center z-20 flex-shrink-0 mt-6">
-                <Heart className="w-4 h-4 text-primary fill-primary/40" />
+              {/* Heart Connector Badge */}
+              <div className="bg-surface/90 backdrop-blur-md p-2.5 rounded-full shadow-lg border border-primary/30 flex items-center justify-center z-20 flex-shrink-0 mt-6 text-primary">
+                <Heart className="w-4 h-4 fill-primary/40 text-primary animate-pulse" />
               </div>
 
               {/* Partner Column (Avatar + Nickname) */}
               <div className="flex flex-col items-center w-24">
-                <div className="w-20 h-20 rounded-full border-4 border-surface shadow-xl bg-surface overflow-hidden relative flex-shrink-0">
+                <div className="w-20 h-20 rounded-full ring-4 ring-surface shadow-2xl bg-surface overflow-hidden relative flex-shrink-0 border border-secondary/20">
                   {relationship?.partner?.profilePicture && (relationship.partner.profilePicture.startsWith("/") || relationship.partner.profilePicture.startsWith("http")) ? (
                     <img 
                       src={relationship.partner.profilePicture} 
@@ -200,34 +156,34 @@ export function Relationship() {
                     </div>
                   )}
                 </div>
-                <span className="font-bold text-sm text-text-primary mt-2 text-center truncate w-full">
+                <span className="font-bold text-xs text-text-primary mt-2 text-center truncate w-full">
                   {partnerName}
                 </span>
               </div>
             </div>
 
             {/* Profile Info Body */}
-            <CardContent className="pt-2 pb-5 text-center px-4 space-y-3">
+            <CardContent className="pt-3 pb-6 text-center px-4 space-y-3.5">
               {/* Anniversary Subtitle & Status Badge */}
               <div className="space-y-1.5">
                 <p className="text-text-secondary text-xs font-medium">
                   {isConnected ? `Together since ${startedAt}` : "Single Space (Not Connected)"}
                 </p>
                 <div>
-                  <span className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-semibold tracking-wide">
-                    {isConnected ? "Connected Partner Space ✨" : "Awaiting Partner Code ⏳"}
+                  <span className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-[11px] font-semibold tracking-wide gap-1 shadow-xs">
+                    <Sparkles className="w-3 h-3 text-amber-400" /> {isConnected ? "Connected Partner Space ✨" : "Awaiting Partner Code ⏳"}
                   </span>
                 </div>
               </div>
 
               {/* Dedicated Professional Edit Profile Action Button */}
-              <div className="pt-2 max-w-xs mx-auto">
+              <div className="pt-1 max-w-xs mx-auto">
                 <Button 
                   onClick={() => setIsEditProfileOpen(true)} 
                   variant="outline" 
-                  className="w-full h-10 rounded-xl bg-surfaceVariant/40 border-border/60 hover:bg-primary/10 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
+                  className="w-full h-9 rounded-xl bg-surfaceVariant/40 border-border/60 hover:bg-primary/10 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs"
                 >
-                  <UserIcon className="w-4 h-4 text-primary" /> Edit Profile Details
+                  <UserIcon className="w-3.5 h-3.5 text-primary" /> Edit Profile Details
                 </Button>
               </div>
             </CardContent>
@@ -235,29 +191,31 @@ export function Relationship() {
         </motion.div>
 
         {/* Relationship Stats & Info */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
-          <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2 ml-1">Relationship Milestones</h3>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2.5">
+          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider ml-1">Relationship Milestones</h3>
           
           <div className="grid grid-cols-2 gap-3">
             {/* Connected Date Card (Clickable to Edit) */}
             <Card 
               onClick={() => setIsEditDateOpen(true)}
-              className="bg-surface border-border/50 hover:border-primary/60 cursor-pointer transition-all shadow-sm group relative"
+              className="bg-surface border-border/50 hover:border-primary/60 cursor-pointer transition-all shadow-xs group relative rounded-2xl"
             >
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className="relative">
-                  <Calendar className="w-6 h-6 text-primary mb-2" />
+                <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary mb-2">
+                  <Calendar className="w-4 h-4" />
                 </div>
-                <span className="text-xs text-text-secondary">Connected Date ✏️</span>
-                <span className="font-semibold text-sm text-text-primary mt-1">{startedAt}</span>
+                <span className="text-[11px] text-text-secondary">Connected Date ✏️</span>
+                <span className="font-semibold text-xs text-text-primary mt-1">{startedAt}</span>
               </CardContent>
             </Card>
 
-            <Card className="bg-surface border-border/50 shadow-sm">
+            <Card className="bg-surface border-border/50 shadow-xs rounded-2xl">
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <Award className="w-6 h-6 text-secondary mb-2" />
-                <span className="text-xs text-text-secondary">Space Status</span>
-                <span className="font-semibold text-sm text-text-primary mt-1">
+                <div className="w-9 h-9 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary mb-2">
+                  <Award className="w-4 h-4" />
+                </div>
+                <span className="text-[11px] text-text-secondary">Space Status</span>
+                <span className="font-semibold text-xs text-text-primary mt-1">
                   {isConnected ? "Active Pair" : "Single Account"}
                 </span>
               </CardContent>
@@ -266,20 +224,22 @@ export function Relationship() {
         </motion.div>
 
         {/* Quick Settings Action */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
-          <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2 ml-1">Account & Security</h3>
-          <Card onClick={() => navigate('/settings')} className="bg-surface border-border/50 hover:bg-surfaceVariant/30 transition-colors cursor-pointer shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2.5">
+          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider ml-1">Account & Security</h3>
+          <Card onClick={() => navigate('/settings')} className="bg-surface border-border/50 hover:bg-surfaceVariant/30 transition-colors cursor-pointer shadow-xs rounded-2xl">
+            <CardContent className="p-3.5 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Shield className="w-5 h-5 text-primary" />
-                <span className="font-medium text-sm text-text-primary">App Settings & Security</span>
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-xs text-text-primary">App Settings & Security</span>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="pt-4">
-          <Button onClick={handleLogout} variant="ghost" className="w-full text-error hover:bg-error/10 hover:text-error h-12 rounded-xl">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="pt-2">
+          <Button onClick={handleLogout} variant="ghost" className="w-full text-error hover:bg-error/10 hover:text-error h-11 rounded-xl text-xs font-semibold">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
