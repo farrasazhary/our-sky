@@ -5,6 +5,7 @@
   # 🌌 OurSky
   ### *A Private Celestial Sanctuary & Shared Digital Space for Couples*
 
+  [![Release](https://img.shields.io/badge/Release-v1.0.0--beta-purple.svg?logo=github)](https://github.com/farrasazhary/our-sky/releases/tag/v1.0.0-beta)
   [![React](https://img.shields.io/badge/React-18.x-blue.svg?logo=react&logoColor=61DAFB)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
