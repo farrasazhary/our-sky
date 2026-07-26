@@ -26,27 +26,51 @@ const DEFAULT_QUESTIONS = [
   "Impian besar apa yang paling ingin kita capai bersama dalam 5 tahun ke depan?",
   "Apa satu hal yang paling kamu syukuri dari hubungan kita saat ini?",
   "Momen lucu apa tentang kita berdua yang sampai sekarang masih membuatmu tertawa?",
+  "Makanan apa yang paling ingin kamu masak berdua denganku di rumah?",
+  "Bagaimana perasaanmu setiap kali kita berpegangan tangan di tempat umum?",
+  "Film atau serial apa yang menurutmu jalan ceritanya mirip dengan kisah cinta kita?",
+  "Momen spesifik mana saat kamu pertama kali sadar bahwa kamu jatuh cinta padaku?",
+  "Apa satu perhatian kecil yang bisa kubuat hari ini untuk membuat harimu lebih bahagia?",
+  "Jika kamu bisa menggambarkan hubungan kita dalam 3 kata, kata apa saja itu?",
+  "Apa panggilan sayang atau lelucon internal favoritmu tentang kita?",
+  "Bagaimana cara favoritmu untuk menghabiskan malam minggu bersamaku?",
+  "Apa sifat dari diriku yang paling membuatmu merasa aman dan tenang?",
+  "Tempat mana yang sudah pernah kita kunjungi yang paling ingin kamu kunjungi lagi?",
+  "Apa satu hal tentangku yang belum pernah kamu ceritakan ke orang lain?",
+  "Bagaimana perasaanmu saat pertama kali kita saling bertukar pesan dulu?",
+  "Foto berdua kita mana yang paling kamu sukai dan kenapa?",
+  "Apa hal paling romantis yang pernah kita lakukan bersama menurutmu?",
+  "Jika kita buat janji kecil untuk tahun depan, janji apa yang ingin kamu buat?",
+  "Apa hal yang paling kamu rindukan saat kita sedang berjauhan beberapa hari?",
+  "Bagaimana caraku yang paling efektif untuk menenangkanmu saat kamu merasa cemas?",
+  "Kado atau kejutan kecil apa dari pasangan yang paling berkesan untukmu?",
+  "Pelajaran terbaik apa yang kamu dapatkan tentang cinta dari hubungan kita?",
+  "Apa harapan terbesar untuk perjalanan cinta kita ke depannya?"
 ]
 
 export class QuestionService {
+  static async seedDefaultQuestionsIfNeeded() {
+    const count = await prisma.question.count({ where: { isActive: true } })
+    if (count < 10) {
+      for (const qText of DEFAULT_QUESTIONS) {
+        const exists = await prisma.question.findFirst({ where: { questionText: qText } })
+        if (!exists) {
+          await prisma.question.create({
+            data: { questionText: qText, category: "Relationship", isActive: true }
+          })
+        }
+      }
+    }
+  }
+
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
+    await this.seedDefaultQuestionsIfNeeded()
+
     const now = new Date()
     const startOfYear = new Date(now.getFullYear(), 0, 1)
     const diffMs = now.getTime() - startOfYear.getTime()
     const oneDayMs = 1000 * 60 * 60 * 24
     const dayOfYear = Math.floor(diffMs / oneDayMs) + 1
-
-    let count = await prisma.question.count({ where: { isActive: true } })
-    
-    // Auto-seed default questions if table is empty
-    if (count === 0) {
-      for (const qText of DEFAULT_QUESTIONS) {
-        await prisma.question.create({
-          data: { questionText: qText, category: "Relationship", isActive: true }
-        })
-      }
-      count = await prisma.question.count({ where: { isActive: true } })
-    }
 
     // Smart Anti-Repeat Tracking: Get questions already answered by this relationship
     const answered = await prisma.questionAnswer.findMany({
@@ -112,6 +136,8 @@ export class QuestionService {
   }
 
   static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, currentQuestionIdStr?: string) {
+    await this.seedDefaultQuestionsIfNeeded()
+
     const answered = await prisma.questionAnswer.findMany({
       where: { relationshipId },
       select: { questionId: true }
