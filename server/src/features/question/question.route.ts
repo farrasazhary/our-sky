@@ -15,57 +15,11 @@ const answerSchema = z.object({
   answerText: z.string().min(1, "Answer is required").max(500, "Answer cannot exceed 500 characters")
 })
 
-const DEFAULT_QUESTIONS = [
-  "Apa satu kebiasaan kecil dariku yang diam-diam paling kamu sukai?",
-  "Bagaimana kesan pertamamu saat pertama kali kita bertemu?",
-  "Apa kenangan paling berkesan dari hubungan kita sepanjang tahun ini?",
-  "Lagu apa yang selalu membuatmu teringat padaku saat mendengarnya?",
-  "Jika besok kita bisa liburan ke mana saja secara gratis, ke mana kamu ingin pergi?",
-  "Apa hal sederhana yang baru saja kubuat yang membuatmu merasa sangat dicintai?",
-  "Seperti apa gambaran kencan akhir pekan yang paling sempurna menurutmu?",
-  "Impian besar apa yang paling ingin kita capai bersama dalam 5 tahun ke depan?",
-  "Apa satu hal yang paling kamu syukuri dari hubungan kita saat ini?",
-  "Momen lucu apa tentang kita berdua yang sampai sekarang masih membuatmu tertawa?",
-  "Makanan apa yang paling ingin kamu masak berdua denganku di rumah?",
-  "Bagaimana perasaanmu setiap kali kita berpegangan tangan di tempat umum?",
-  "Film atau serial apa yang menurutmu jalan ceritanya mirip dengan kisah cinta kita?",
-  "Momen spesifik mana saat kamu pertama kali sadar bahwa kamu jatuh cinta padaku?",
-  "Apa satu perhatian kecil yang bisa kubuat hari ini untuk membuat harimu lebih bahagia?",
-  "Jika kamu bisa menggambarkan hubungan kita dalam 3 kata, kata apa saja itu?",
-  "Apa panggilan sayang atau lelucon internal favoritmu tentang kita?",
-  "Bagaimana cara favoritmu untuk menghabiskan malam minggu bersamaku?",
-  "Apa sifat dari diriku yang paling membuatmu merasa aman dan tenang?",
-  "Tempat mana yang sudah pernah kita kunjungi yang paling ingin kamu kunjungi lagi?",
-  "Apa satu hal tentangku yang belum pernah kamu ceritakan ke orang lain?",
-  "Bagaimana perasaanmu saat pertama kali kita saling bertukar pesan dulu?",
-  "Foto berdua kita mana yang paling kamu sukai dan kenapa?",
-  "Apa hal paling romantis yang pernah kita lakukan bersama menurutmu?",
-  "Jika kita buat janji kecil untuk tahun depan, janji apa yang ingin kamu buat?",
-  "Apa hal yang paling kamu rindukan saat kita sedang berjauhan beberapa hari?",
-  "Bagaimana caraku yang paling efektif untuk menenangkanmu saat kamu merasa cemas?",
-  "Kado atau kejutan kecil apa dari pasangan yang paling berkesan untukmu?",
-  "Pelajaran terbaik apa yang kamu dapatkan tentang cinta dari hubungan kita?",
-  "Apa harapan terbesar untuk perjalanan cinta kita ke depannya?"
-]
-
 export class QuestionService {
-  static async seedDefaultQuestionsIfNeeded() {
-    const count = await prisma.question.count({ where: { isActive: true } })
-    if (count < 10) {
-      for (const qText of DEFAULT_QUESTIONS) {
-        const exists = await prisma.question.findFirst({ where: { questionText: qText } })
-        if (!exists) {
-          await prisma.question.create({
-            data: { questionText: qText, category: "Relationship", isActive: true }
-          })
-        }
-      }
-    }
-  }
-
+  /**
+   * Generates a 100% dynamic romantic question using Gemini AI on-demand
+   */
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
-    await this.seedDefaultQuestionsIfNeeded()
-
     const now = new Date()
     const startOfYear = new Date(now.getFullYear(), 0, 1)
     const diffMs = now.getTime() - startOfYear.getTime()
@@ -79,17 +33,18 @@ export class QuestionService {
     })
     const answeredIds = Array.from(new Set(answered.map(a => a.questionId)))
 
-    // Find first active question NOT yet answered by this relationship
+    // Find if there is an un-answered active question already available
     let question = await prisma.question.findFirst({
       where: {
         isActive: true,
         id: { notIn: answeredIds.length > 0 ? answeredIds : [0n] }
-      }
+      },
+      orderBy: { createdAt: "desc" }
     })
 
-    // Hybrid AI Trigger: If ALL existing questions in database have been answered by this couple!
+    // If no active unanswered question exists, generate a brand new one using Gemini AI!
     if (!question) {
-      console.log("🤖 [AI Hybrid] All native questions answered! Triggering Gemini AI for a fresh new question...")
+      console.log("🤖 [Gemini AI] Generating a fresh romantic question on-demand...")
       const aiData = await AiService.generateRomanticQuestion()
       
       question = await prisma.question.create({
@@ -114,13 +69,12 @@ export class QuestionService {
     const myAnswer = answers.find(a => a.userId === userId)
     const partnerAnswer = answers.find(a => a.userId !== userId)
     const isBothAnswered = answers.length >= 2
-    const isAiGenerated = question.category?.includes("AI") || false
 
     return {
       id: question.id.toString(),
       questionText: question.questionText,
       category: question.category,
-      isAiGenerated,
+      isAiGenerated: true,
       dayNumber: dayOfYear,
       myAnswer: myAnswer ? {
         answerText: myAnswer.answerText,
@@ -135,50 +89,26 @@ export class QuestionService {
     }
   }
 
-  static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, currentQuestionIdStr?: string) {
-    await this.seedDefaultQuestionsIfNeeded()
-
-    const answered = await prisma.questionAnswer.findMany({
-      where: { relationshipId },
-      select: { questionId: true }
-    })
-    const answeredIds = Array.from(new Set(answered.map(a => a.questionId)))
+  /**
+   * Rerolls today's question by generating a brand new Gemini AI question on demand
+   */
+  static async rerollTodayQuestion(relationshipId: bigint, userId: bigint, _currentQuestionIdStr?: string) {
+    console.log("🤖 [Gemini AI] Rerolling question on-demand via Gemini AI...")
+    const aiData = await AiService.generateRomanticQuestion()
     
-    if (currentQuestionIdStr) {
-      try {
-        answeredIds.push(BigInt(currentQuestionIdStr))
-      } catch (e) {}
-    }
-
-    // Find next un-answered active question
-    let question = await prisma.question.findFirst({
-      where: {
-        isActive: true,
-        id: { notIn: answeredIds.length > 0 ? answeredIds : [0n] }
+    const question = await prisma.question.create({
+      data: {
+        questionText: aiData.questionText,
+        category: aiData.category || "AI Generated",
+        isActive: true
       }
     })
-
-    // If no un-answered questions left, generate fresh question via Gemini AI!
-    if (!question) {
-      console.log("🤖 [AI Hybrid] Rerolling question: Generating fresh question via Gemini AI...")
-      const aiData = await AiService.generateRomanticQuestion()
-      
-      question = await prisma.question.create({
-        data: {
-          questionText: aiData.questionText,
-          category: aiData.category || "AI Generated",
-          isActive: true
-        }
-      })
-    }
-
-    const isAiGenerated = question.category?.includes("AI") || false
 
     return {
       id: question.id.toString(),
       questionText: question.questionText,
       category: question.category,
-      isAiGenerated,
+      isAiGenerated: true,
       myAnswer: null,
       partnerAnswer: null,
       isBothAnswered: false
@@ -260,7 +190,7 @@ export class QuestionService {
           id: qId,
           questionId: qId,
           questionText: ans.question.questionText,
-          isAiGenerated: ans.question.category?.includes("AI") || false,
+          isAiGenerated: true,
           myAnswer: null,
           partnerAnswer: null
         })
