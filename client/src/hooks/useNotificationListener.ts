@@ -19,6 +19,46 @@ export function useNotificationListener() {
     }
   }, [isAuthenticated])
 
+  // Automatically clear active OS notification banners from status bar when user opens/focuses the app
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const clearActiveOSNotifications = async () => {
+      if ("serviceWorker" in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready
+          if (reg && reg.active) {
+            reg.active.postMessage({ type: "CLEAR_NOTIFICATIONS" })
+          }
+          if (reg && reg.getNotifications) {
+            const notifs = await reg.getNotifications()
+            for (const n of notifs) {
+              n.close()
+            }
+          }
+        } catch (e) {
+          // Ignore unsupported SW registration calls
+        }
+      }
+    }
+
+    clearActiveOSNotifications()
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        clearActiveOSNotifications()
+      }
+    }
+
+    window.addEventListener("focus", clearActiveOSNotifications)
+    document.addEventListener("visibilitychange", handleVisibility)
+
+    return () => {
+      window.removeEventListener("focus", clearActiveOSNotifications)
+      document.removeEventListener("visibilitychange", handleVisibility)
+    }
+  }, [isAuthenticated])
+
   useEffect(() => {
     if (!isAuthenticated) return
 

@@ -49,3 +49,14 @@ self.addEventListener("notificationclick", function (event) {
     })
   )
 })
+
+// Clear active OS notifications from top status bar when app is opened or focused
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "CLEAR_NOTIFICATIONS") {
+    self.registration.getNotifications().then(function (notifications) {
+      for (const notification of notifications) {
+        notification.close()
+      }
+    })
+  }
+})
