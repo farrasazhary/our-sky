@@ -113,7 +113,7 @@ export const DATE_IDEAS_365: DateIdea[] = [
       "Kencan menikmati pemandangan malam kota dari ketinggian"
     ]
 
-    const title = `${titles[id % titles.length]} #${id}`
+    const title = titles[id % titles.length]
     return {
       id,
       title,
