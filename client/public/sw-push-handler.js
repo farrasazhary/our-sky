@@ -14,11 +14,13 @@ self.addEventListener("push", function (event) {
       badge: "/pwa-192x192.png",
       tag: `oursky-push-${Date.now()}`,
       renotify: true,
+      silent: false,
+      requireInteraction: notifType === "HEARTBEAT" || notifType === "QUESTION",
       data: {
         url: payload.targetUrl || (notifType === "HEARTBEAT" ? "/dashboard" : "/notifications"),
         type: notifType
       },
-      vibrate: notifType === "HEARTBEAT" ? [120, 80, 120, 300, 120, 80, 120] : [100, 50, 100]
+      vibrate: notifType === "HEARTBEAT" ? [300, 150, 300, 150, 300] : [200, 100, 200]
     }
 
     event.waitUntil(self.registration.showNotification(title, options))
