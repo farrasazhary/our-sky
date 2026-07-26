@@ -5,11 +5,12 @@
   # 🌌 OurSky
   ### *A Private Celestial Sanctuary & Shared Digital Space for Couples*
 
-  [![Release](https://img.shields.io/badge/Release-v1.0.0--beta-purple.svg?logo=github)](https://github.com/farrasazhary/our-sky/releases/tag/v1.0.0-beta)
+  [![Release](https://img.shields.io/badge/Release-v1.1.0--beta-purple.svg?logo=github)](https://github.com/farrasazhary/our-sky/releases/tag/v1.1.0-beta)
   [![React](https://img.shields.io/badge/React-18.x-blue.svg?logo=react&logoColor=61DAFB)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Google Gemini AI](https://img.shields.io/badge/Google_Gemini-1.5_Flash-8E75FF.svg?logo=google&logoColor=white)](https://ai.google.dev/)
   [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Node.js](https://img.shields.io/badge/Express-4.x-000000.svg?logo=express&logoColor=white)](https://expressjs.com/)
+  [![Express](https://img.shields.io/badge/Express-4.x-000000.svg?logo=express&logoColor=white)](https://expressjs.com/)
   [![Prisma](https://img.shields.io/badge/Prisma-5.x-2D3748.svg?logo=prisma&logoColor=white)](https://www.prisma.io/)
   [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1.svg?logo=mysql&logoColor=white)](https://www.mysql.com/)
   [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success.svg?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
@@ -20,6 +21,7 @@
   </p>
 
   [Features](#-key-features) •
+  [What's New in v1.1.0-beta](#-whats-new-in-v110-beta) •
   [Tech Stack](#-tech-stack) •
   [Installation](#-quick-start) •
   [PWA Setup](#-pwa--mobile-installation) •
@@ -31,7 +33,20 @@
 
 ## 🌟 Overview
 
-Relationships are made of small, meaningful moments. **OurSky** brings couples together into a dedicated private digital space free from social media noise. From daily emotional prompts and shared photo memory albums to custom constellation stars and real-time push notifications, OurSky makes every day with your partner feel magical.
+Relationships are made of small, meaningful moments. **OurSky** brings couples together into a dedicated private digital space free from social media noise. Powered by **Google Gemini 1.5 Flash AI**, daily emotional prompts, shared photo memory albums, 365 couple date activities, custom constellation stars, and real-time push notifications make every day with your partner feel magical.
+
+---
+
+## 🔥 What's New in v1.1.0-beta
+
+- 🤖 **Google Gemini 1.5 Flash AI Engine**: Dynamic AI-generated romantic couple questions and custom date ideas with automatic multi-model fallback cascade and 429 rate limit cooldown protection.
+- 🔔 **W3C Web Push Protocol & High-Urgency OS Push**: Background system notifications via VAPID keypair that deliver alerts even when the PWA is completely closed or phone screen is locked.
+- 🎯 **Target Destination Navigation**: Tapping any notification card, toast banner, or system push automatically marks it as read and navigates directly to the relevant feature page (`/question`, `/memory`, `/random-date`, `/dream-board`, etc.).
+- 💖 **Animated NotificationBell & Real-time Badge**: Real-time spring physics badge counter pop-up accompanied by a 3-heart floating burst animation (`💕✨`) whenever your partner interacts.
+- 🧹 **Auto-Clear Status Bar Notifications**: Opening or focusing the OurSky PWA automatically dismisses and clears active OurSky notification banners from the OS top status bar.
+- 📳 **2-Second Haptic Vibrations**: Unified 2000ms smooth vibration pattern for Instant Heartbeat Pulses ("Aku Lagi Kangen Kamu! 💓") and partner activity.
+- 📅 **365 Couple Date Activities Pool**: A full 365-day curated Indonesian date activities library ensuring a unique activity for every day of the year.
+- 📸 **Native Camera Capture & WebP Compression**: Direct camera photo capture for memory posts with dual-layer WebP compression (~50KB per photo).
 
 ---
 
@@ -40,22 +55,22 @@ Relationships are made of small, meaningful moments. **OurSky** brings couples t
 <table>
   <tr>
     <td width="50%">
-      <h3>💬 Question of the Day</h3>
-      <p>A daily prompt system designed to spark deep, meaningful conversations. Both partners must submit their answers before unlocking each other's response.</p>
+      <h3>🤖 Question of the Day (Gemini AI)</h3>
+      <p>Daily romantic questions generated on-demand by Google Gemini AI. Tracks assigned questions per relationship so both partners answer the exact same prompt before unlocking each other's response.</p>
     </td>
     <td width="50%">
       <h3>📸 Little Memory Album</h3>
-      <p>Record 1 daily photo memory together. Features dual-layer WebP compression (HTML5 Canvas + Sharp Engine) reducing image size to ~50KB while preserving crisp 1080p visual quality.</p>
+      <p>Record 1 daily photo memory together using direct native camera capture or gallery upload with WebP compression (~50KB per photo).</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
       <h3>🌌 Constellation Galaxy</h3>
-      <p>Watch your love story expand in a interactive 3D starry galaxy where memories and special events scatter organic glowing stars across the night sky.</p>
+      <p>Watch your love story expand in an interactive 3D starry galaxy where memories and special events scatter organic glowing stars across the night sky.</p>
     </td>
     <td width="50%">
-      <h3>🎲 Random Date Generator</h3>
-      <p>Stuck on date night ideas? Spin the random date generator, invite your partner, and accept date invitations with distinct real-time notifications.</p>
+      <h3>🎲 Random Date & 365 Activities</h3>
+      <p>Spin the random date generator backed by 365 unique Indonesian couple date ideas or Gemini AI, propose dates, and accept invitations in real-time.</p>
     </td>
   </tr>
   <tr>
@@ -74,8 +89,8 @@ Relationships are made of small, meaningful moments. **OurSky** brings couples t
       <p>Track your shared bucket list, travel goals, and life dreams with interactive progress milestones and cover photo customization.</p>
     </td>
     <td width="50%">
-      <h3>🔔 Real-Time Push Notifications</h3>
-      <p>System Push Notifications alert your partner instantly on Android, iOS, or Windows whenever a memory is posted, a letter is opened, or a date is invited.</p>
+      <h3>🔔 W3C Web Push & Animated Bell</h3>
+      <p>Receive high-urgency background push notifications with 2s haptic vibrations, real-time spring pop badge counters, and automatic status bar notification clearing.</p>
     </td>
   </tr>
 </table>
@@ -103,6 +118,8 @@ OurSky is built as a **Progressive Web App (PWA)**, allowing you to install it d
 
 ### Backend & Database
 - **Runtime**: [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/)
+- **AI Engine**: [Google Generative AI (Gemini 1.5 Flash)](https://ai.google.dev/)
+- **Push Protocol**: W3C Web Push (`web-push` library with VAPID keypairs)
 - **ORM**: [Prisma ORM 5](https://www.prisma.io/)
 - **Database**: [MySQL 8](https://www.mysql.com/)
 - **Image Compression**: [Sharp](https://sharp.pixelplumbing.com/) + HTML5 Canvas API
@@ -131,13 +148,14 @@ npm install
 # Copy environment example
 cp .env.example .env
 
-# Configure your database credentials in .env:
-# DATABASE_URL="mysql://user:password@localhost:3306/oursky"
+# Configure database & API keys in .env:
+# DATABASE_URL="mysql://user:password@localhost:3306/oursky_db"
 # JWT_SECRET="your_secure_jwt_secret"
+# GEMINI_API_KEY="your_google_gemini_api_key"
 
-# Run Prisma migrations & seed default questions
+# Run Prisma schema push & client generator
 npm run db:push
-npm run db:seed
+npm run db:generate
 
 # Start backend server
 npm run dev
@@ -160,21 +178,22 @@ Visit `http://localhost:5173` in your browser to experience OurSky!
 
 ```
 our-sky/
-├── client/                     # Frontend Vite + React application
-│   ├── public/                 # PWA icons, manifest, and assets
+├── client/                     # Frontend Vite + React PWA application
+│   ├── public/                 # PWA icons, sw-push-handler.js, & manifest
 │   ├── src/
-│   │   ├── components/         # Modals, UI components, & PWA prompt
+│   │   ├── components/         # NotificationBell, NotificationToast, Modals...
 │   │   ├── contexts/           # AuthContext & State management
-│   │   ├── hooks/              # Notification Listener hooks
-│   │   ├── pages/              # Dashboard, Memory, Question, Constellation...
+│   │   ├── hooks/              # Notification Listener & WebPush subscription hooks
+│   │   ├── pages/              # Dashboard, Memory, Question, Constellation, RandomDate...
 │   │   └── services/           # Axios-like Fetch API wrapper
 ├── server/                     # Backend Express REST API server
 │   ├── prisma/                 # Database schema & seeds
 │   ├── src/
-│   │   ├── features/           # Feature-based modular routes & controllers
+│   │   ├── config/             # Database & WebPush VAPID config
+│   │   ├── features/           # AI, Question, Notification, Memory, RandomDate features...
 │   │   ├── middleware/         # Auth, Upload, & Authorization middleware
 │   │   └── shared/             # Response wrappers & error handlers
-└── docs/                       # Project specifications & architecture docs
+└── deploy.sh                   # Automated 1-click VPS deployment script
 ```
 
 ---
