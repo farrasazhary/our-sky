@@ -141,14 +141,15 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
                     <p className="text-[10px] text-text-tertiary">Photos are automatically compressed to ~50KB WebP for super fast load times.</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="grid grid-cols-2 gap-3 pt-2">
                     {/* Direct Native Camera Button */}
                     <Button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
-                      className="h-11 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-md flex items-center justify-center gap-2"
+                      className="h-12 rounded-2xl bg-gradient-to-r from-primary to-primary-hover text-white text-xs font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                      <Camera className="w-4 h-4" /> Ambil Foto Kamera 📷
+                      <Camera className="w-4 h-4 text-white" />
+                      <span>Ambil Foto</span>
                     </Button>
 
                     {/* Gallery Picker Button */}
@@ -156,9 +157,10 @@ export function AddMemoryModal({ isOpen, onClose, onSuccess }: AddMemoryModalPro
                       type="button"
                       variant="outline"
                       onClick={() => galleryInputRef.current?.click()}
-                      className="h-11 rounded-xl border-border/60 text-text-primary hover:bg-surfaceVariant/60 text-xs font-semibold flex items-center justify-center gap-2"
+                      className="h-12 rounded-2xl bg-surface/80 border-border/60 text-text-primary hover:bg-surfaceVariant/60 hover:border-primary/50 hover:scale-[1.02] active:scale-[0.98] transition-all text-xs font-bold flex items-center justify-center gap-2 shadow-sm"
                     >
-                      <ImagePlus className="w-4 h-4 text-secondary" /> Galeri Foto 🖼️
+                      <ImagePlus className="w-4 h-4 text-secondary" />
+                      <span>Pilih Galeri</span>
                     </Button>
                   </div>
                 </>
