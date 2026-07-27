@@ -108,7 +108,7 @@ export function CoupleLocationCard() {
             </div>
             <div>
               <h3 className="text-xs font-extrabold text-text-primary uppercase tracking-widest flex items-center gap-1.5">
-                Jarak Cinta Pasangan <Sparkles className="w-3 h-3 text-amber-400" />
+                Jarak Pasangan <Sparkles className="w-3 h-3 text-amber-400" />
               </h3>
               <p className="text-[10px] text-text-tertiary">Real-time Location Distance</p>
             </div>
