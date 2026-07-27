@@ -27,7 +27,7 @@ export class RelationshipEventRepository {
       where: { 
         relationshipId,
         eventType: {
-          notIn: ["DATE_PROPOSED", "DATE_REJECTED"]
+          notIn: ["DATE_PROPOSED", "DATE_REJECTED", "HEARTBEAT_SENT", "QUESTION_ASSIGNED"]
         }
       },
       orderBy: { eventDate: "desc" }
