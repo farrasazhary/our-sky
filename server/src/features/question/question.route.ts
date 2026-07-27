@@ -9,6 +9,7 @@ import { RelationshipEventService } from "../relationship-event/relationshipEven
 import { EVENT_TYPES } from "../../shared/constants/eventTypes"
 import { NotificationService } from "../notification/notification.route"
 import { AiService } from "../ai/ai.service"
+import { DateHelper } from "../../shared/utils/dateHelper"
 import { z } from "zod"
 
 const answerSchema = z.object({
@@ -21,7 +22,7 @@ export class QuestionService {
    */
   static async getTodayQuestion(relationshipId: bigint, userId: bigint) {
     const now = new Date()
-    const todayStr = now.toISOString().split("T")[0]
+    const todayStr = DateHelper.getIndonesianDateString(now)
     const startOfYear = new Date(now.getFullYear(), 0, 1)
     const diffMs = now.getTime() - startOfYear.getTime()
     const oneDayMs = 1000 * 60 * 60 * 24
@@ -40,7 +41,7 @@ export class QuestionService {
     let isSameDay = false
 
     if (assignedEvent) {
-      const eventDateStr = new Date(assignedEvent.createdAt).toISOString().split("T")[0]
+      const eventDateStr = DateHelper.getIndonesianDateString(assignedEvent.createdAt)
       if (eventDateStr === todayStr) {
         isSameDay = true
         question = await prisma.question.findUnique({

@@ -32,9 +32,16 @@ export class DateHelper {
   }
 
   /**
+   * Returns YYYY-MM-DD string format in Asia/Jakarta (WIB) timezone
+   */
+  static getIndonesianDateString(date: Date = new Date()): string {
+    return new Date(date).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" })
+  }
+
+  /**
    * Returns YYYY-MM-DD string format
    */
   static formatDateString(date: Date): string {
-    return date.toISOString().split("T")[0]
+    return this.getIndonesianDateString(date)
   }
 }
