@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Navigation, Loader2, MapPin, Globe, Radio, Sparkles, Heart } from "lucide-react"
+import { Navigation, Loader2, Heart, Sparkles, MapPin } from "lucide-react"
 import { api } from "@/services/api"
 
 export function CoupleLocationCard() {
@@ -78,9 +78,9 @@ export function CoupleLocationCard() {
   if (isLoading) {
     return (
       <Card className="bg-surface/60 border-border/40 p-6 text-center shadow-lg rounded-3xl">
-        <div className="flex flex-col items-center justify-center py-6 text-primary">
+        <div className="flex flex-col items-center justify-center py-6 text-pink-400">
           <Loader2 className="w-7 h-7 animate-spin mb-2" />
-          <p className="text-xs text-text-secondary font-medium">Mendeteksi koordinat GPS radar...</p>
+          <p className="text-xs text-text-secondary font-medium">Menghubungkan Benang Merah Takdir...</p>
         </div>
       </Card>
     )
@@ -91,82 +91,85 @@ export function CoupleLocationCard() {
   const isTogether = data?.distanceKm !== null && data?.distanceKm < 0.1
 
   return (
-    <Card className="bg-surface border border-border/60 shadow-2xl rounded-3xl overflow-hidden relative group">
-      {/* Latitude / Longitude Radar Grid Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8E75FF15_1px,transparent_1px),linear-gradient(to_bottom,#8E75FF15_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+    <Card className="bg-gradient-to-br from-[#1E1728] via-[#261B30] to-[#1A1424] border border-pink-500/30 shadow-2xl rounded-3xl overflow-hidden relative group">
+      {/* Ambient Romantic Pink Light Glows */}
+      <div className="absolute -top-10 -left-10 w-40 h-40 bg-pink-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Decorative Starry Heart Sparkles Overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(#EC4899_1px,transparent_1px)] [background-size:22px_22px] opacity-10 pointer-events-none" />
 
       <CardContent className="p-5 relative z-10 space-y-4">
-        {/* Header */}
+        {/* Romantic Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary relative">
-              <Radio className="w-4 h-4 text-primary animate-pulse" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-success animate-ping" />
+            <div className="w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 shadow-md">
+              <Heart className="w-4 h-4 fill-pink-400 text-pink-400 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-xs font-black text-text-primary uppercase tracking-widest flex items-center gap-1.5">
-                Jarak Pasangan <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <h3 className="text-xs font-black text-pink-100 tracking-widest uppercase flex items-center gap-1.5 drop-shadow">
+                Benang Merah Takdir <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
               </h3>
-              <p className="text-[10px] text-text-tertiary font-bold tracking-wider uppercase">
-                GPS Satellite Radar
-              </p>
+              <p className="text-[10px] text-pink-300/70 font-medium">Two Hearts Under One Sky</p>
             </div>
           </div>
 
           <Button
             onClick={handleUpdateLocation}
             disabled={isUpdating}
-            variant="outline"
             size="sm"
-            className="rounded-full border-primary/40 text-primary hover:bg-primary/10 text-xs font-bold h-8 px-3.5 shadow-sm transition-all"
+            className="rounded-full bg-pink-500/20 hover:bg-pink-500/30 text-pink-200 border border-pink-500/40 text-xs font-bold h-8 px-3.5 shadow-md transition-all active:scale-95"
           >
             {isUpdating ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
             ) : (
-              <Navigation className="w-3.5 h-3.5 mr-1.5 text-primary" />
+              <Navigation className="w-3.5 h-3.5 mr-1.5 text-pink-400" />
             )}
-            {isUpdating ? "Mendeteksi..." : "Update GPS"}
+            {isUpdating ? "Mendeteksi..." : "Update Lokasi"}
           </Button>
         </div>
 
-        {/* Satellite Map Stage */}
-        <div className="bg-background/90 backdrop-blur-md border border-border/60 rounded-2xl p-5 relative overflow-hidden shadow-inner min-h-[150px]">
-          {/* Radar Waves / Connecting Laser Beam */}
-          <div className="absolute top-[48px] left-12 right-12 -translate-y-1/2 z-0 pointer-events-none">
-            <div className="w-full border-b-2 border-dashed border-primary/40 relative">
+        {/* Main Romantic Red Thread Stage */}
+        <div className="bg-black/30 backdrop-blur-xl border border-pink-500/20 rounded-2xl p-5 relative overflow-hidden shadow-inner min-h-[155px]">
+          {/* Glowing Red Thread Line (Benang Merah Takdir) */}
+          <div className="absolute top-[52px] left-12 right-12 -translate-y-1/2 z-0 pointer-events-none">
+            <div className="w-full h-[2px] bg-gradient-to-r from-pink-500/40 via-rose-400 to-pink-500/40 relative shadow-[0_0_10px_#EC4899]">
+              {/* Floating Heart Signal Travelling Across the Thread */}
               <motion.div
                 animate={{ x: ["0%", "100%"] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-2 left-0"
               >
-                <Heart className="w-4 h-4 fill-secondary text-secondary drop-shadow" />
+                <div className="relative">
+                  <Heart className="w-4 h-4 fill-pink-400 text-white drop-shadow-[0_0_8px_#EC4899]" />
+                </div>
               </motion.div>
             </div>
           </div>
 
-          {/* Absolute Centered GPS Badge */}
-          <div className="absolute left-1/2 top-[48px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+          {/* Center Pulsating Love Distance Capsule */}
+          <div className="absolute left-1/2 top-[52px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
             <motion.div
-              animate={isTogether ? { scale: [1, 1.1, 1] } : {}}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className={`px-4 py-1.5 rounded-full border shadow-lg font-black text-xs flex items-center gap-1.5 backdrop-blur-md ${
+              animate={isTogether ? { scale: [1, 1.1, 1] } : { scale: [1, 1.05, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className={`px-4 py-1.5 rounded-full border shadow-xl flex items-center gap-1.5 backdrop-blur-xl ${
                 isTogether
-                  ? "bg-secondary text-white border-secondary/60 shadow-secondary/30"
-                  : "bg-surface/95 border-primary/50 text-primary shadow-primary/20"
+                  ? "bg-gradient-to-r from-pink-600 to-rose-600 border-pink-300 text-white shadow-pink-500/40"
+                  : "bg-[#2D1B36]/90 border-pink-500/50 text-pink-200 shadow-pink-500/20"
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-primary shrink-0 animate-spin-slow" />
-              <span className="text-xs font-black">{data?.distanceFormatted || "--"}</span>
+              <Heart className="w-3.5 h-3.5 fill-pink-400 text-pink-400 animate-pulse" />
+              <span className="text-xs font-black text-white tracking-wide">{data?.distanceFormatted || "--"}</span>
             </motion.div>
           </div>
 
-          {/* User & Partner Radar Markers */}
+          {/* User & Partner Avatars */}
           <div className="flex items-start justify-between relative z-10">
-            {/* User GPS Pod */}
+            {/* User Pod */}
             <div className="flex flex-col items-center text-center space-y-1.5 w-28 shrink-0">
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary p-0.5 shadow-lg overflow-hidden">
-                  <div className="w-full h-full rounded-full bg-surface overflow-hidden flex items-center justify-center font-black text-primary text-sm">
+                <div className="w-14 h-14 rounded-full bg-pink-500/20 border-2 border-pink-400 p-0.5 shadow-[0_0_15px_rgba(236,72,153,0.3)] overflow-hidden">
+                  <div className="w-full h-full rounded-full bg-slate-950 overflow-hidden flex items-center justify-center font-black text-pink-300 text-sm">
                     {myLoc?.profilePicture && (myLoc.profilePicture.startsWith("/") || myLoc.profilePicture.startsWith("http")) ? (
                       <img src={myLoc.profilePicture} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -175,31 +178,26 @@ export function CoupleLocationCard() {
                   </div>
                 </div>
                 {myLoc?.latitude && (
-                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
+                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-[0_0_6px_#34D399]" />
                 )}
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-xs font-black text-text-primary block truncate max-w-[95px]">
+                <span className="text-xs font-black text-pink-100 block truncate max-w-[95px]">
                   {myLoc?.fullName || "Saya"}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[9px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 truncate max-w-[95px]">
-                  <MapPin className="w-2.5 h-2.5 shrink-0" />
+                <span className="inline-flex items-center gap-1 text-[9px] text-pink-300 font-bold bg-pink-950/60 px-2 py-0.5 rounded-full border border-pink-500/30 truncate max-w-[95px]">
+                  <MapPin className="w-2.5 h-2.5 text-pink-400 shrink-0" />
                   <span className="truncate">{myLoc?.locationName || (myLoc?.latitude ? "GPS Aktif" : "Belum Set")}</span>
                 </span>
-                {myLoc?.latitude && (
-                  <span className="text-[8px] text-text-tertiary font-mono block truncate max-w-[95px]">
-                    {myLoc.latitude.toFixed(2)}°, {myLoc.longitude.toFixed(2)}°
-                  </span>
-                )}
               </div>
             </div>
 
-            {/* Partner GPS Pod */}
+            {/* Partner Pod */}
             <div className="flex flex-col items-center text-center space-y-1.5 w-28 shrink-0">
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-secondary/20 border-2 border-secondary p-0.5 shadow-lg overflow-hidden">
-                  <div className="w-full h-full rounded-full bg-surface overflow-hidden flex items-center justify-center font-black text-secondary text-sm">
+                <div className="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-400 p-0.5 shadow-[0_0_15px_rgba(244,63,94,0.3)] overflow-hidden">
+                  <div className="w-full h-full rounded-full bg-slate-950 overflow-hidden flex items-center justify-center font-black text-rose-300 text-sm">
                     {partnerLoc?.profilePicture && (partnerLoc.profilePicture.startsWith("/") || partnerLoc.profilePicture.startsWith("http")) ? (
                       <img src={partnerLoc.profilePicture} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -208,36 +206,37 @@ export function CoupleLocationCard() {
                   </div>
                 </div>
                 {partnerLoc?.latitude && (
-                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
+                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-[0_0_6px_#34D399]" />
                 )}
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-xs font-black text-text-primary block truncate max-w-[95px]">
+                <span className="text-xs font-black text-pink-100 block truncate max-w-[95px]">
                   {partnerLoc?.fullName || "Pasangan"}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[9px] text-secondary font-bold bg-secondary/10 px-2 py-0.5 rounded-full border border-secondary/20 truncate max-w-[95px]">
-                  <MapPin className="w-2.5 h-2.5 shrink-0" />
+                <span className="inline-flex items-center gap-1 text-[9px] text-pink-300 font-bold bg-pink-950/60 px-2 py-0.5 rounded-full border border-pink-500/30 truncate max-w-[95px]">
+                  <MapPin className="w-2.5 h-2.5 text-rose-400 shrink-0" />
                   <span className="truncate">{partnerLoc?.locationName || (partnerLoc?.latitude ? "GPS Aktif" : "Belum Set")}</span>
                 </span>
-                {partnerLoc?.latitude && (
-                  <span className="text-[8px] text-text-tertiary font-mono block truncate max-w-[95px]">
-                    {partnerLoc.latitude.toFixed(2)}°, {partnerLoc.longitude.toFixed(2)}°
-                  </span>
-                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer Status Message */}
+        {/* Emotional Romantic Status Footer */}
         <div className="text-center space-y-1">
-          <p className="text-xs font-semibold text-text-secondary">
-            {data?.statusText || "Memuat status lokasi..."}
+          <p className="text-xs font-bold text-pink-200/90 flex items-center justify-center gap-1.5">
+            <span>
+              {isTogether
+                ? "Kalian sedang berada di lokasi yang sama! ❤️"
+                : data?.distanceKm
+                ? `Terpisah ${data.distanceFormatted}, namun selalu dekat di dalam hati 💖`
+                : data?.statusText || "Memuat status benang merah..."}
+            </span>
           </p>
 
           {errorMsg && (
-            <p className="text-[11px] text-error font-medium bg-error/10 border border-error/20 p-2 rounded-xl">
+            <p className="text-[11px] text-rose-300 font-medium bg-rose-950/60 border border-rose-500/30 p-2 rounded-xl">
               {errorMsg}
             </p>
           )}
