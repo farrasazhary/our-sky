@@ -58,6 +58,10 @@ model User {
   email          String   @unique @db.VarChar(255)
   password       String   @db.VarChar(255)
   profilePicture String?  @map("profile_picture") @db.VarChar(255)
+  latitude       Float?   @map("latitude")
+  longitude      Float?   @map("longitude")
+  locationName   String?  @map("location_name") @db.VarChar(100)
+  lastLocationUpdate DateTime? @map("last_location_update")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 

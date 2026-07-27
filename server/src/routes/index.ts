@@ -17,6 +17,8 @@ import { authenticate } from "../middleware/authenticate"
 import { authorizeRelationship } from "../middleware/authorize"
 import { asyncHandler } from "../shared/utils/asyncHandler"
 
+import { locationRoutes } from "../features/location/location.route"
+
 const router = Router()
 
 // Public Auth Routes
@@ -38,5 +40,6 @@ router.use("/random-dates", randomDateRoutes)
 router.use("/constellation", constellationRoutes)
 router.use("/notifications", notificationRoutes)
 router.use("/heartbeats", heartbeatRoutes)
+router.use("/location", locationRoutes)
 
 export { router }

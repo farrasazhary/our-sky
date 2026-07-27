@@ -370,6 +370,26 @@ class ApiClient {
   async getHeartbeatStats() {
     return this.request<{ totalCount: number; latest: any | null }>("/heartbeats/stats")
   }
+
+  // ----------------------------------------------------
+  // LOCATION & COUPLE DISTANCE API
+  // ----------------------------------------------------
+  async updateLocation(data: { latitude: number; longitude: number; locationName?: string }) {
+    return this.request("/location/update", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getCoupleDistance() {
+    return this.request<{
+      myLocation: any
+      partnerLocation: any
+      distanceKm: number | null
+      distanceFormatted: string
+      statusText: string
+    }>("/location/distance")
+  }
 }
 
 export const api = new ApiClient()

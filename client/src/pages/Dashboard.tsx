@@ -19,6 +19,7 @@ import {
   Stars
 } from "lucide-react"
 import { NotificationBell } from "@/components/NotificationBell"
+import { CoupleLocationCard } from "@/components/CoupleLocationCard"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { CountdownCard } from "@/components/CountdownCard"
@@ -382,6 +383,11 @@ export function Dashboard() {
                 Send 💓
               </Button>
             </Card>
+          </section>
+
+          {/* Couple Distance & Illustrated Mini-Map Card */}
+          <section className="px-6 py-1">
+            <CoupleLocationCard />
           </section>
 
           {/* Countdown Widget */}
