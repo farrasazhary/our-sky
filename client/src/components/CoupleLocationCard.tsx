@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Navigation, Loader2, Plane, Sparkles, MapPin } from "lucide-react"
+import { Navigation, Loader2, Plane, MapPin } from "lucide-react"
 import { api } from "@/services/api"
 
 export function CoupleLocationCard() {
@@ -116,10 +116,20 @@ export function CoupleLocationCard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full text-primary font-bold text-[10px]">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>REAL-TIME ROUTE</span>
-          </div>
+          {/* Update Location Button (Moved to Header) */}
+          <Button
+            onClick={handleUpdateLocation}
+            disabled={isUpdating}
+            size="sm"
+            className="rounded-full bg-primary hover:bg-primary-hover text-white text-xs font-bold h-8 px-3.5 shadow-md transition-all active:scale-95 shrink-0"
+          >
+            {isUpdating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+            ) : (
+              <Navigation className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            {isUpdating ? "Mendeteksi..." : "Update Lokasi"}
+          </Button>
         </div>
 
         {/* Main Flight Path Section */}
@@ -216,25 +226,11 @@ export function CoupleLocationCard() {
           </div>
         </div>
 
-        {/* Ticket Stub Footer */}
-        <div className="bg-surfaceVariant/30 px-6 py-3.5 border-t border-dashed border-border/60 flex items-center justify-between">
-          <p className="text-xs font-semibold text-text-secondary truncate max-w-[200px]">
+        {/* Ticket Stub Footer - Centered Status Text */}
+        <div className="bg-surfaceVariant/30 px-6 py-3.5 border-t border-dashed border-border/60 flex items-center justify-center text-center">
+          <p className="text-xs font-bold text-text-secondary text-center w-full">
             {data?.statusText || "Memuat status..."}
           </p>
-
-          <Button
-            onClick={handleUpdateLocation}
-            disabled={isUpdating}
-            size="sm"
-            className="rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold h-8 px-3.5 shadow-md transition-all active:scale-95 shrink-0"
-          >
-            {isUpdating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-            ) : (
-              <Navigation className="w-3.5 h-3.5 mr-1.5" />
-            )}
-            {isUpdating ? "Mendeteksi..." : "Update Lokasi"}
-          </Button>
         </div>
 
         {errorMsg && (
