@@ -138,6 +138,22 @@ export function CoupleLocationCard() {
             </div>
           </div>
 
+          {/* Absolute Centered Middle Distance Badge - Exactly on the 44px center line of avatars and dashed line */}
+          <div className="absolute left-1/2 top-[44px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+            <motion.div
+              animate={isTogether ? { scale: [1, 1.12, 1] } : {}}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className={`px-3.5 py-1.5 rounded-full border shadow-md font-extrabold text-xs flex items-center gap-1.5 backdrop-blur-md ${
+                isTogether
+                  ? "bg-secondary text-white border-secondary/50 shadow-secondary/30"
+                  : "bg-surface/95 border-primary/50 text-primary shadow-primary/20"
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isTogether ? "fill-white" : "fill-primary"}`} />
+              <span className="text-xs font-black">{data?.distanceFormatted || "--"}</span>
+            </motion.div>
+          </div>
+
           {/* User & Partner Cards - Using Equal Widths (w-28) to guarantee 100% Middle Centering */}
           <div className="flex items-start justify-between relative z-10">
             {/* Left User Pod (Fixed Width w-28) */}
@@ -160,22 +176,6 @@ export function CoupleLocationCard() {
               <span className="text-[9px] text-text-tertiary truncate max-w-[95px] bg-surfaceVariant/60 px-2 py-0.5 rounded-full border border-border/40 font-medium">
                 {myLoc?.locationName || (myLoc?.latitude ? "GPS Aktif" : "Belum Set")}
               </span>
-            </div>
-
-            {/* Middle Centered Distance Badge */}
-            <div className="flex flex-col items-center justify-center pt-1 z-20 shrink-0">
-              <motion.div
-                animate={isTogether ? { scale: [1, 1.12, 1] } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className={`px-3.5 py-1.5 rounded-full border shadow-md font-extrabold text-xs flex items-center gap-1.5 backdrop-blur-md ${
-                  isTogether
-                    ? "bg-secondary text-white border-secondary/50 shadow-secondary/30"
-                    : "bg-surface/95 border-primary/50 text-primary shadow-primary/20"
-                }`}
-              >
-                <Heart className={`w-3.5 h-3.5 ${isTogether ? "fill-white" : "fill-primary"}`} />
-                <span className="text-xs font-black">{data?.distanceFormatted || "--"}</span>
-              </motion.div>
             </div>
 
             {/* Right Partner Pod (Fixed Width w-28) */}
