@@ -179,8 +179,8 @@ export function Question() {
                   <textarea 
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Write your honest, heart-felt answer here..."
-                    className="w-full flex-1 min-h-[160px] p-4 bg-surface border border-border/50 rounded-2xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/60 transition-colors resize-none shadow-sm text-sm"
+                    placeholder="Tuliskan jawaban jujur, mendalam, dan penuh makna disini..."
+                    className="w-full flex-1 min-h-[180px] p-4 bg-surface border border-border/50 rounded-2xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/60 transition-colors resize-y shadow-sm text-sm leading-relaxed whitespace-pre-wrap"
                     required
                   />
                   <div className="pt-4">
@@ -203,7 +203,7 @@ export function Question() {
                         <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
                           Your Answer
                         </span>
-                        <p className="text-sm text-text-primary">{todayQuestion.myAnswer?.answerText}</p>
+                        <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">{todayQuestion.myAnswer?.answerText}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -216,7 +216,7 @@ export function Question() {
                           <span className="text-[10px] font-bold text-secondary uppercase tracking-wider block">
                             {todayQuestion.partnerAnswer.partnerName}'s Answer
                           </span>
-                          <p className="text-sm text-text-primary">{todayQuestion.partnerAnswer.answerText}</p>
+                          <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">{todayQuestion.partnerAnswer.answerText}</p>
                         </CardContent>
                       </Card>
                     ) : (

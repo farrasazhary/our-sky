@@ -13,7 +13,7 @@ import { DateHelper } from "../../shared/utils/dateHelper"
 import { z } from "zod"
 
 const answerSchema = z.object({
-  answerText: z.string().min(1, "Answer is required").max(500, "Answer cannot exceed 500 characters")
+  answerText: z.string().min(1, "Answer is required").max(10000, "Answer cannot exceed 10,000 characters")
 })
 
 export class QuestionService {
