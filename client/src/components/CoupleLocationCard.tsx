@@ -131,9 +131,9 @@ export function CoupleLocationCard() {
         </div>
 
         {/* Illustrated Map Area */}
-        <div className="bg-background/80 backdrop-blur-md border border-border/60 rounded-2xl p-5 relative overflow-hidden shadow-inner min-h-[140px] flex flex-col justify-between">
+        <div className="bg-background/80 backdrop-blur-md border border-border/60 rounded-2xl p-5 relative overflow-hidden shadow-inner min-h-[140px]">
           {/* Connecting Heart Line between User and Partner */}
-          <div className="absolute top-1/2 left-10 right-10 -translate-y-1/2 flex items-center justify-between z-0 pointer-events-none">
+          <div className="absolute top-[44px] left-12 right-12 -translate-y-1/2 flex items-center justify-between z-0 pointer-events-none">
             <div className="flex-1 border-b-2 border-dashed border-primary/40 relative">
               <motion.div
                 animate={{ x: ["0%", "100%"] }}
@@ -145,10 +145,26 @@ export function CoupleLocationCard() {
             </div>
           </div>
 
+          {/* Absolute Centered Middle Distance Badge */}
+          <div className="absolute left-1/2 top-[44px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+            <motion.div
+              animate={isTogether ? { scale: [1, 1.15, 1] } : {}}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className={`px-3.5 py-1.5 rounded-full border shadow-md font-extrabold text-xs flex items-center gap-1.5 ${
+                isTogether
+                  ? "bg-secondary text-white border-secondary/50 shadow-secondary/30"
+                  : "bg-surface/95 border-primary/40 text-primary shadow-primary/20 backdrop-blur-md"
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isTogether ? "fill-white" : "fill-primary"}`} />
+              <span>{data?.distanceFormatted || "--"}</span>
+            </motion.div>
+          </div>
+
           {/* User & Partner Avatars on Map */}
-          <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-start justify-between relative z-10">
             {/* User Pin */}
-            <div className="flex flex-col items-center text-center space-y-1.5">
+            <div className="flex flex-col items-center text-center space-y-1.5 w-24">
               <div className="relative">
                 <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center font-bold text-primary shadow-lg shadow-primary/20 overflow-hidden">
                   {myLoc?.profilePicture && (myLoc.profilePicture.startsWith("/") || myLoc.profilePicture.startsWith("http")) ? (
@@ -161,32 +177,16 @@ export function CoupleLocationCard() {
                   <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
                 )}
               </div>
-              <span className="text-[11px] font-bold text-text-primary truncate max-w-[80px]">
+              <span className="text-[11px] font-bold text-text-primary truncate max-w-[85px]">
                 {myLoc?.fullName || "Saya"}
               </span>
-              <span className="text-[9px] text-text-tertiary truncate max-w-[80px] bg-surfaceVariant/60 px-1.5 py-0.5 rounded-full border border-border/40">
+              <span className="text-[9px] text-text-tertiary truncate max-w-[85px] bg-surfaceVariant/60 px-1.5 py-0.5 rounded-full border border-border/40">
                 {myLoc?.locationName || (myLoc?.latitude ? "GPS Aktif" : "Belum Set")}
               </span>
             </div>
 
-            {/* Middle Distance Badge */}
-            <div className="flex flex-col items-center justify-center z-10 px-2">
-              <motion.div
-                animate={isTogether ? { scale: [1, 1.15, 1] } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className={`px-3.5 py-1.5 rounded-full border shadow-md font-extrabold text-xs flex items-center gap-1.5 ${
-                  isTogether
-                    ? "bg-secondary text-white border-secondary/50 shadow-secondary/30"
-                    : "bg-surface/90 border-primary/40 text-primary shadow-primary/20"
-                }`}
-              >
-                <Heart className={`w-3.5 h-3.5 ${isTogether ? "fill-white" : "fill-primary"}`} />
-                <span>{data?.distanceFormatted || "--"}</span>
-              </motion.div>
-            </div>
-
             {/* Partner Pin */}
-            <div className="flex flex-col items-center text-center space-y-1.5">
+            <div className="flex flex-col items-center text-center space-y-1.5 w-24">
               <div className="relative">
                 <div className="w-12 h-12 rounded-full bg-secondary/20 border-2 border-secondary flex items-center justify-center font-bold text-secondary shadow-lg shadow-secondary/20 overflow-hidden">
                   {partnerLoc?.profilePicture && (partnerLoc.profilePicture.startsWith("/") || partnerLoc.profilePicture.startsWith("http")) ? (
@@ -199,10 +199,10 @@ export function CoupleLocationCard() {
                   <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
                 )}
               </div>
-              <span className="text-[11px] font-bold text-text-primary truncate max-w-[80px]">
+              <span className="text-[11px] font-bold text-text-primary truncate max-w-[85px]">
                 {partnerLoc?.fullName || "Pasangan"}
               </span>
-              <span className="text-[9px] text-text-tertiary truncate max-w-[80px] bg-surfaceVariant/60 px-1.5 py-0.5 rounded-full border border-border/40">
+              <span className="text-[9px] text-text-tertiary truncate max-w-[85px] bg-surfaceVariant/60 px-1.5 py-0.5 rounded-full border border-border/40">
                 {partnerLoc?.locationName || (partnerLoc?.latitude ? "GPS Aktif" : "Belum Set")}
               </span>
             </div>
