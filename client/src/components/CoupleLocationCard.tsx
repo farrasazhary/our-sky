@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MapPin, Navigation, Heart, Loader2, Sparkles } from "lucide-react"
+import { Navigation, Loader2, Plane, Sparkles, MapPin } from "lucide-react"
 import { api } from "@/services/api"
 
 export function CoupleLocationCard() {
@@ -80,7 +80,7 @@ export function CoupleLocationCard() {
       <Card className="bg-surface/60 border-border/40 p-6 text-center shadow-lg rounded-3xl">
         <div className="flex flex-col items-center justify-center py-6 text-primary">
           <Loader2 className="w-7 h-7 animate-spin mb-2" />
-          <p className="text-xs text-text-secondary font-medium">Menghitung lokasi...</p>
+          <p className="text-xs text-text-secondary font-medium">Memuat rute penerbangan cinta...</p>
         </div>
       </Card>
     )
@@ -91,129 +91,159 @@ export function CoupleLocationCard() {
   const isTogether = data?.distanceKm !== null && data?.distanceKm < 0.1
 
   return (
-    <Card className="bg-surface border-border/50 shadow-xl rounded-3xl overflow-hidden relative">
-      <CardContent className="p-5 relative z-10 space-y-4">
-        {/* Top Header */}
-        <div className="flex items-center justify-between">
+    <Card className="bg-surface border border-border/60 shadow-2xl rounded-3xl overflow-hidden relative group">
+      {/* Decorative Starry Grid Layer */}
+      <div className="absolute inset-0 bg-[radial-gradient(#8E75FF_1px,transparent_1px)] [background-size:18px_18px] opacity-10 pointer-events-none" />
+
+      {/* Ticket Cutout Notches (Left & Right) */}
+      <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-background border border-border/60 z-20 pointer-events-none" />
+      <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-background border border-border/60 z-20 pointer-events-none" />
+
+      <CardContent className="p-0 relative z-10">
+        {/* Ticket Header Bar */}
+        <div className="bg-surfaceVariant/40 px-6 py-3 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary">
-              <MapPin className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary">
+              <Plane className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-extrabold text-text-primary uppercase tracking-widest flex items-center gap-1.5">
-                Jarak Pasangan <Sparkles className="w-3 h-3 text-amber-400" />
-              </h3>
-              <p className="text-[10px] text-text-tertiary">Real-time Location Distance</p>
+              <span className="text-[10px] font-black text-primary tracking-widest uppercase block">
+                OURSKY AIRLINES ✈️
+              </span>
+              <span className="text-[9px] text-text-tertiary font-bold tracking-wider uppercase">
+                Direct Love Pass
+              </span>
             </div>
           </div>
+
+          <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full text-primary font-bold text-[10px]">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>REAL-TIME ROUTE</span>
+          </div>
+        </div>
+
+        {/* Main Flight Path Section */}
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between relative">
+            {/* Origin (User) */}
+            <div className="flex flex-col items-center text-center space-y-2 w-28 shrink-0 z-10">
+              <div className="relative">
+                <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary p-0.5 shadow-lg overflow-hidden">
+                  <div className="w-full h-full rounded-full bg-surface overflow-hidden flex items-center justify-center font-bold text-primary text-sm">
+                    {myLoc?.profilePicture && (myLoc.profilePicture.startsWith("/") || myLoc.profilePicture.startsWith("http")) ? (
+                      <img src={myLoc.profilePicture} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      myLoc?.fullName?.[0]?.toUpperCase() || "ME"
+                    )}
+                  </div>
+                </div>
+                {myLoc?.latitude && (
+                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
+                )}
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-xs font-black text-text-primary block truncate max-w-[95px]">
+                  {myLoc?.fullName || "Saya"}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[9px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 truncate max-w-[95px] uppercase tracking-wider">
+                  <MapPin className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{myLoc?.locationName || (myLoc?.latitude ? "GPS AKTIF" : "ORIGIN")}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Flight Path Arc & Animated Airplane Badge */}
+            <div className="flex-1 px-2 relative flex flex-col items-center justify-center z-10">
+              {/* Dashed Flight Path Track */}
+              <div className="w-full h-[2px] border-b-2 border-dashed border-primary/40 relative">
+                {/* Traveling Airplane Icon */}
+                <motion.div
+                  animate={{ x: ["0%", "100%"] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -top-3 left-0"
+                >
+                  <div className="w-6 h-6 rounded-full bg-secondary text-white flex items-center justify-center shadow-lg shadow-secondary/40">
+                    <Plane className="w-3.5 h-3.5 transform rotate-90 fill-white" />
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Distance Ticket Badge */}
+              <div className="mt-4">
+                <motion.div
+                  animate={isTogether ? { scale: [1, 1.1, 1] } : {}}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className={`px-3.5 py-1.5 rounded-2xl border shadow-lg font-black text-xs flex items-center gap-1.5 ${
+                    isTogether
+                      ? "bg-secondary text-white border-secondary/60 shadow-secondary/30"
+                      : "bg-surfaceVariant/90 border-primary/40 text-primary shadow-primary/10"
+                  }`}
+                >
+                  <Plane className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span>{data?.distanceFormatted || "--"}</span>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Destination (Partner) */}
+            <div className="flex flex-col items-center text-center space-y-2 w-28 shrink-0 z-10">
+              <div className="relative">
+                <div className="w-14 h-14 rounded-full bg-secondary/20 border-2 border-secondary p-0.5 shadow-lg overflow-hidden">
+                  <div className="w-full h-full rounded-full bg-surface overflow-hidden flex items-center justify-center font-bold text-secondary text-sm">
+                    {partnerLoc?.profilePicture && (partnerLoc.profilePicture.startsWith("/") || partnerLoc.profilePicture.startsWith("http")) ? (
+                      <img src={partnerLoc.profilePicture} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      partnerLoc?.fullName?.[0]?.toUpperCase() || "P"
+                    )}
+                  </div>
+                </div>
+                {partnerLoc?.latitude && (
+                  <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
+                )}
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-xs font-black text-text-primary block truncate max-w-[95px]">
+                  {partnerLoc?.fullName || "Pasangan"}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[9px] text-secondary font-bold bg-secondary/10 px-2 py-0.5 rounded-full border border-secondary/20 truncate max-w-[95px] uppercase tracking-wider">
+                  <MapPin className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{partnerLoc?.locationName || (partnerLoc?.latitude ? "GPS AKTIF" : "DESTINATION")}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Ticket Stub Footer */}
+        <div className="bg-surfaceVariant/30 px-6 py-3.5 border-t border-dashed border-border/60 flex items-center justify-between">
+          <p className="text-xs font-semibold text-text-secondary truncate max-w-[200px]">
+            {data?.statusText || "Memuat status..."}
+          </p>
 
           <Button
             onClick={handleUpdateLocation}
             disabled={isUpdating}
-            variant="outline"
             size="sm"
-            className="rounded-full border-primary/30 text-primary hover:bg-primary/10 text-xs font-semibold h-8 px-3 transition-all"
+            className="rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold h-8 px-3.5 shadow-md transition-all active:scale-95 shrink-0"
           >
             {isUpdating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
             ) : (
-              <Navigation className="w-3.5 h-3.5 mr-1" />
+              <Navigation className="w-3.5 h-3.5 mr-1.5" />
             )}
             {isUpdating ? "Mendeteksi..." : "Update Lokasi"}
           </Button>
         </div>
 
-        {/* First Style Map Stage - With Equal Pod Widths for 100% Perfect Centering */}
-        <div className="bg-background/90 border border-border/60 rounded-2xl p-5 relative overflow-hidden shadow-inner">
-          {/* Connecting Dashed Line across the center of 48px avatars */}
-          <div className="absolute top-[44px] left-12 right-12 -translate-y-1/2 z-0 pointer-events-none">
-            <div className="w-full border-b-2 border-dashed border-primary/40 relative">
-              <motion.div
-                animate={{ x: ["0%", "100%"] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                className="absolute -top-2 left-0"
-              >
-                <Heart className="w-4 h-4 fill-secondary text-secondary drop-shadow" />
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Absolute Centered Middle Distance Badge - Exactly on the 44px center line of avatars and dashed line */}
-          <div className="absolute left-1/2 top-[44px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-            <motion.div
-              animate={isTogether ? { scale: [1, 1.12, 1] } : {}}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className={`px-3.5 py-1.5 rounded-full border shadow-md font-extrabold text-xs flex items-center gap-1.5 backdrop-blur-md ${
-                isTogether
-                  ? "bg-secondary text-white border-secondary/50 shadow-secondary/30"
-                  : "bg-surface/95 border-primary/50 text-primary shadow-primary/20"
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isTogether ? "fill-white" : "fill-primary"}`} />
-              <span className="text-xs font-black">{data?.distanceFormatted || "--"}</span>
-            </motion.div>
-          </div>
-
-          {/* User & Partner Cards - Using Equal Widths (w-28) to guarantee 100% Middle Centering */}
-          <div className="flex items-start justify-between relative z-10">
-            {/* Left User Pod (Fixed Width w-28) */}
-            <div className="flex flex-col items-center text-center space-y-1.5 w-28 shrink-0">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center font-bold text-primary shadow-md overflow-hidden">
-                  {myLoc?.profilePicture && (myLoc.profilePicture.startsWith("/") || myLoc.profilePicture.startsWith("http")) ? (
-                    <img src={myLoc.profilePicture} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    myLoc?.fullName?.[0]?.toUpperCase() || "ME"
-                  )}
-                </div>
-                {myLoc?.latitude && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
-                )}
-              </div>
-              <span className="text-[11px] font-extrabold text-text-primary truncate max-w-[95px]">
-                {myLoc?.fullName || "Saya"}
-              </span>
-              <span className="text-[9px] text-text-tertiary truncate max-w-[95px] bg-surfaceVariant/60 px-2 py-0.5 rounded-full border border-border/40 font-medium">
-                {myLoc?.locationName || (myLoc?.latitude ? "GPS Aktif" : "Belum Set")}
-              </span>
-            </div>
-
-            {/* Right Partner Pod (Fixed Width w-28) */}
-            <div className="flex flex-col items-center text-center space-y-1.5 w-28 shrink-0">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-secondary/20 border-2 border-secondary flex items-center justify-center font-bold text-secondary shadow-md overflow-hidden">
-                  {partnerLoc?.profilePicture && (partnerLoc.profilePicture.startsWith("/") || partnerLoc.profilePicture.startsWith("http")) ? (
-                    <img src={partnerLoc.profilePicture} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    partnerLoc?.fullName?.[0]?.toUpperCase() || "P"
-                  )}
-                </div>
-                {partnerLoc?.latitude && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-success border-2 border-background flex items-center justify-center text-[8px] text-white font-bold" />
-                )}
-              </div>
-              <span className="text-[11px] font-extrabold text-text-primary truncate max-w-[95px]">
-                {partnerLoc?.fullName || "Pasangan"}
-              </span>
-              <span className="text-[9px] text-text-tertiary truncate max-w-[95px] bg-surfaceVariant/60 px-2 py-0.5 rounded-full border border-border/40 font-medium">
-                {partnerLoc?.locationName || (partnerLoc?.latitude ? "GPS Aktif" : "Belum Set")}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Status Text */}
-        <div className="text-center space-y-1">
-          <p className="text-xs font-semibold text-text-secondary">
-            {data?.statusText}
-          </p>
-
-          {errorMsg && (
-            <p className="text-[11px] text-error font-medium bg-error/10 border border-error/20 p-2 rounded-xl">
+        {errorMsg && (
+          <div className="px-6 pb-4">
+            <p className="text-[11px] text-error font-medium bg-error/10 border border-error/20 p-2 rounded-xl text-center">
               {errorMsg}
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
