@@ -86,7 +86,7 @@ export function useNotificationListener() {
             if (notif.type === "HEARTBEAT" || notif.title?.includes("Heartbeat")) {
               if ("vibrate" in navigator) {
                 try {
-                  navigator.vibrate([2000])
+                  navigator.vibrate([800, 200, 800])
                 } catch (e) {
                   // Vibration API unsupported or muted
                 }

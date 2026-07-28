@@ -17,7 +17,7 @@ self.addEventListener("push", function (event) {
       silent: false,
       requireInteraction: true,
       timestamp: Date.now(),
-      vibrate: [2000],
+      vibrate: [800, 200, 800],
       data: {
         url: payload.targetUrl || (notifType === "HEARTBEAT" ? "/dashboard" : "/notifications"),
         type: notifType
