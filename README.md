@@ -17,7 +17,7 @@
   [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
   <p align="center">
-    <b>OurSky</b> is a modern, ultra-private couple web application designed to deepen intimacy, record daily memories, track milestones, and create lasting digital keepsakes under a shared starry sky.
+    <b>OurSky</b> is a modern, ultra-private couple web application designed to deepen intimacy, record daily memories, track milestones, calculate real-time couple distance, and create lasting digital keepsakes under a shared starry sky.
   </p>
 
   [Features](#-key-features) •
@@ -33,20 +33,22 @@
 
 ## 🌟 Overview
 
-Relationships are made of small, meaningful moments. **OurSky** brings couples together into a dedicated private digital space free from social media noise. Powered by **Google Gemini 1.5 Flash AI**, daily emotional prompts, shared photo memory albums, 365 couple date activities, custom constellation stars, and real-time push notifications make every day with your partner feel magical.
+Relationships are made of small, meaningful moments. **OurSky** brings couples together into a dedicated private digital space free from social media noise. Powered by **Google Gemini 1.5 Flash AI**, daily emotional prompts, shared photo memory albums, real-time GPS couple distance tracking, 365 date activities, and high-urgency push notifications make every day with your partner feel magical.
 
 ---
 
 ## 🔥 What's New in v1.1.0-beta
 
-- 🤖 **Google Gemini 1.5 Flash AI Engine**: Dynamic AI-generated romantic couple questions and custom date ideas with automatic multi-model fallback cascade and 429 rate limit cooldown protection.
-- 🔔 **W3C Web Push Protocol & High-Urgency OS Push**: Background system notifications via VAPID keypair that deliver alerts even when the PWA is completely closed or phone screen is locked.
-- 🎯 **Target Destination Navigation**: Tapping any notification card, toast banner, or system push automatically marks it as read and navigates directly to the relevant feature page (`/question`, `/memory`, `/random-date`, `/dream-board`, etc.).
-- 💖 **Animated NotificationBell & Real-time Badge**: Real-time spring physics badge counter pop-up accompanied by a 3-heart floating burst animation (`💕✨`) whenever your partner interacts.
-- 🧹 **Auto-Clear Status Bar Notifications**: Opening or focusing the OurSky PWA automatically dismisses and clears active OurSky notification banners from the OS top status bar.
-- 📳 **2-Second Haptic Vibrations**: Unified 2000ms smooth vibration pattern for Instant Heartbeat Pulses ("Aku Lagi Kangen Kamu! 💓") and partner activity.
-- 📅 **365 Couple Date Activities Pool**: A full 365-day curated Indonesian date activities library ensuring a unique activity for every day of the year.
-- 📸 **Native Camera Capture & WebP Compression**: Direct camera photo capture for memory posts with dual-layer WebP compression (~50KB per photo).
+- 🗺️ **Couple Location & Real-Time Distance Pass (`/location`)**: Real-time GPS distance calculation using the Haversine formula. Features a Flight Path & Boarding Pass UI design (`OURSKY AIRLINES ✈️ | DIRECT LOVE PASS`) with animated traveling airplane, equal pod widths for 100% lateral symmetry, header update button, and automatic status text ("Kalian terpisah 9.196,7 km" or "Bersama ❤️").
+- 🤖 **Google Gemini 1.5 Flash AI Engine**: Dynamic AI-generated romantic couple questions and date ideas with multi-model fallback cascade and 429 rate limit cooldown protection.
+- ⏰ **WIB Timezone-Aware Midnight Reset**: Automatic daily question reset at 00:00 midnight WIB (`Asia/Jakarta` timezone formatting) eliminating UTC date lag.
+- ✍️ **10,000-Character Deep Answer Capacity**: Expanded Question of the Day answer limit to 10,000 characters with resizable textarea and `whitespace-pre-wrap` formatting for long essays and deep responses.
+- 🎯 **Dream Board Push Notifications & Fixed Images**: Real-time partner WebPush alerts (`"New Dream Goal Added! 🎯"` & `"Dream Accomplished! 🎉"`) with direct navigation to `/dream-board` and resolved cover image path rendering.
+- 🌌 **Constellation Galaxy Refinement**: Excluded instant `HEARTBEAT_SENT` and `QUESTION_ASSIGNED` events from Constellation Galaxy to keep the galaxy dedicated strictly to meaningful milestones.
+- 🔔 **W3C Web Push Protocol & High-Urgency OS Push**: Background system notifications via VAPID keypair with high-urgency headers that deliver alerts even when the PWA is closed.
+- 🧹 **Auto-Clear Status Bar Notifications**: Opening or focusing the PWA automatically clears active notification banners from the OS top status bar.
+- 📳 **2-Second Smooth Haptics**: Unified 2000ms smooth vibration pattern for Instant Heartbeat Pulses ("Aku Lagi Kangen Kamu! 💓") and partner activity alerts.
+- 📅 **365 Couple Date Activities Pool**: Full 365-day curated Indonesian date activities library ensuring a unique activity for every day of the year.
 
 ---
 
@@ -55,18 +57,28 @@ Relationships are made of small, meaningful moments. **OurSky** brings couples t
 <table>
   <tr>
     <td width="50%">
-      <h3>🤖 Question of the Day (Gemini AI)</h3>
-      <p>Daily romantic questions generated on-demand by Google Gemini AI. Tracks assigned questions per relationship so both partners answer the exact same prompt before unlocking each other's response.</p>
+      <h3>🗺️ Couple Distance Pass</h3>
+      <p>Calculate real-time distance between you and your partner using Haversine GPS formula with Flight Path & Boarding Pass UI, traveling airplane animation, and 1-tap location updates.</p>
     </td>
     <td width="50%">
-      <h3>📸 Little Memory Album</h3>
-      <p>Record 1 daily photo memory together using direct native camera capture or gallery upload with WebP compression (~50KB per photo).</p>
+      <h3>🤖 Question of the Day (Gemini AI)</h3>
+      <p>Daily romantic questions generated on-demand by Google Gemini AI with WIB midnight reset. Supports up to 10,000 characters for deep, heartfelt essays.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
+      <h3>📸 Little Memory Album</h3>
+      <p>Record 1 daily photo memory together using direct native camera capture or gallery upload with dual-layer WebP compression (~50KB per photo).</p>
+    </td>
+    <td width="50%">
       <h3>🌌 Constellation Galaxy</h3>
-      <p>Watch your love story expand in an interactive 3D starry galaxy where memories and special events scatter organic glowing stars across the night sky.</p>
+      <p>Watch your love story expand in an interactive 3D starry galaxy where memories, milestone events, and completed dreams scatter glowing stars across the night sky.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🎯 Shared Dream Board</h3>
+      <p>Track your shared bucket list, travel goals, and life dreams with real-time push notifications when goals are added or accomplished.</p>
     </td>
     <td width="50%">
       <h3>🎲 Random Date & 365 Activities</h3>
@@ -81,16 +93,6 @@ Relationships are made of small, meaningful moments. **OurSky** brings couples t
     <td width="50%">
       <h3>🔒 Time Capsules</h3>
       <p>Seal secret messages, photos, and dreams into digital time capsules locked until a specific future date or anniversary.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>🎯 Shared Dream Board</h3>
-      <p>Track your shared bucket list, travel goals, and life dreams with interactive progress milestones and cover photo customization.</p>
-    </td>
-    <td width="50%">
-      <h3>🔔 W3C Web Push & Animated Bell</h3>
-      <p>Receive high-urgency background push notifications with 2s haptic vibrations, real-time spring pop badge counters, and automatic status bar notification clearing.</p>
     </td>
   </tr>
 </table>
@@ -122,6 +124,7 @@ OurSky is built as a **Progressive Web App (PWA)**, allowing you to install it d
 - **Push Protocol**: W3C Web Push (`web-push` library with VAPID keypairs)
 - **ORM**: [Prisma ORM 5](https://www.prisma.io/)
 - **Database**: [MySQL 8](https://www.mysql.com/)
+- **Location Math**: Haversine Distance Formula
 - **Image Compression**: [Sharp](https://sharp.pixelplumbing.com/) + HTML5 Canvas API
 - **Auth**: JWT (JSON Web Tokens) & HTTP-only secure cookies
 
@@ -181,18 +184,18 @@ our-sky/
 ├── client/                     # Frontend Vite + React PWA application
 │   ├── public/                 # PWA icons, sw-push-handler.js, & manifest
 │   ├── src/
-│   │   ├── components/         # NotificationBell, NotificationToast, Modals...
+│   │   ├── components/         # CoupleLocationCard, NotificationBell, Toast, Modals...
 │   │   ├── contexts/           # AuthContext & State management
 │   │   ├── hooks/              # Notification Listener & WebPush subscription hooks
-│   │   ├── pages/              # Dashboard, Memory, Question, Constellation, RandomDate...
+│   │   ├── pages/              # Dashboard, Memory, Question, Constellation, DreamBoard...
 │   │   └── services/           # Axios-like Fetch API wrapper
 ├── server/                     # Backend Express REST API server
 │   ├── prisma/                 # Database schema & seeds
 │   ├── src/
 │   │   ├── config/             # Database & WebPush VAPID config
-│   │   ├── features/           # AI, Question, Notification, Memory, RandomDate features...
+│   │   ├── features/           # Location, AI, Question, Notification, Memory, Dream...
 │   │   ├── middleware/         # Auth, Upload, & Authorization middleware
-│   │   └── shared/             # Response wrappers & error handlers
+│   │   └── shared/             # Response wrappers, DateHelper, & error handlers
 └── deploy.sh                   # Automated 1-click VPS deployment script
 ```
 
