@@ -7,6 +7,7 @@ import { ApiResponse } from "../../shared/responses/ApiResponse"
 import { asyncHandler } from "../../shared/utils/asyncHandler"
 import { AppError } from "../../shared/errors/AppError"
 import { RelationshipEventService } from "../relationship-event/relationshipEvent.service"
+import { NotificationService } from "../notification/notification.route"
 import { EVENT_TYPES } from "../../shared/constants/eventTypes"
 import { z } from "zod"
 
@@ -45,7 +46,7 @@ export class DreamService {
     }))
   }
 
-  static async createDream(relationshipId: bigint, data: any, file?: Express.Multer.File) {
+  static async createDream(relationshipId: bigint, userId: bigint, data: any, file?: Express.Multer.File) {
     const dream = await prisma.dream.create({
       data: {
         relationshipId,
@@ -58,6 +59,16 @@ export class DreamService {
       }
     })
 
+    // Dispatch real-time push notification to partner
+    await NotificationService.notifyPartner(
+      relationshipId,
+      userId,
+      "New Dream Goal Added! 🎯",
+      `Your partner added a new dream: "${dream.title}"`,
+      "INFO",
+      "/dream-board"
+    ).catch((err) => console.warn("Dream notification error:", err))
+
     return {
       id: dream.id.toString(),
       title: dream.title,
@@ -66,7 +77,7 @@ export class DreamService {
     }
   }
 
-  static async toggleDreamStatus(idStr: string, relationshipId: bigint) {
+  static async toggleDreamStatus(idStr: string, relationshipId: bigint, userId?: bigint) {
     const id = BigInt(idStr)
     const dream = await prisma.dream.findFirst({
       where: { id, relationshipId }
@@ -90,6 +101,17 @@ export class DreamService {
         sourceId: updated.id,
         description: `Accomplished a dream goal: "${updated.title}"!`
       })
+
+      if (userId) {
+        await NotificationService.notifyPartner(
+          relationshipId,
+          userId,
+          "Dream Accomplished! 🎉",
+          `Your partner completed a dream goal: "${updated.title}"!`,
+          "INFO",
+          "/dream-board"
+        ).catch((err) => console.warn("Dream completion notification error:", err))
+      }
     }
 
     return {
@@ -155,15 +177,17 @@ export class DreamController {
 
   static create = async (req: RelationshipRequest, res: Response) => {
     const relationshipId = req.relationshipId!
+    const userId = BigInt(req.user!.userId)
     const validated = createDreamSchema.parse(req.body)
-    const data = await DreamService.createDream(relationshipId, validated, req.file)
+    const data = await DreamService.createDream(relationshipId, userId, validated, req.file)
     return ApiResponse.created(res, "Dream created successfully.", data)
   }
 
   static toggleStatus = async (req: RelationshipRequest, res: Response) => {
     const relationshipId = req.relationshipId!
+    const userId = BigInt(req.user!.userId)
     const { id } = req.params
-    const data = await DreamService.toggleDreamStatus(id, relationshipId)
+    const data = await DreamService.toggleDreamStatus(id, relationshipId, userId)
     return ApiResponse.success(res, "Dream status updated.", data)
   }
 

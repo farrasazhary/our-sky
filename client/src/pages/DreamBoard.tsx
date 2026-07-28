@@ -110,7 +110,7 @@ export function DreamBoard() {
                   <Card className="bg-surface border-border/50 overflow-hidden shadow-sm group">
                     <div className="h-36 relative overflow-hidden bg-surfaceVariant">
                       <img 
-                        src={item.coverImage ? `/uploads/memories/${item.coverImage}` : "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80"} 
+                        src={item.coverImage ? (item.coverImage.startsWith("http") || item.coverImage.startsWith("/") ? item.coverImage : `/uploads/${item.coverImage}`) : "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80"} 
                         alt={item.title} 
                         className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isCompleted ? 'grayscale opacity-60' : ''}`} 
                       />
