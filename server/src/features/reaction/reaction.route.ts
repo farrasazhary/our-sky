@@ -49,18 +49,15 @@ export class ReactionService {
       create: { answerId, userId, emoji },
     })
 
-    // Only notify if reacting to partner's answer
-    if (answer.userId !== userId) {
-      const emojiSymbol = EMOJI_MAP[emoji] || "❤️"
-      await NotificationService.notifyPartner(
-        relationshipId,
-        userId,
-        `Reaksi Baru ${emojiSymbol}`,
-        `Pasanganmu memberikan reaksi ${emojiSymbol} pada jawabanmu!`,
-        "QUESTION",
-        "/question"
-      ).catch((err) => console.warn("Answer reaction notification error:", err))
-    }
+    const emojiSymbol = EMOJI_MAP[emoji] || "❤️"
+    await NotificationService.notifyPartner(
+      relationshipId,
+      userId,
+      `Reaksi Baru ${emojiSymbol}`,
+      `Pasanganmu memberikan reaksi ${emojiSymbol} pada jawaban Question of the Day!`,
+      "QUESTION",
+      "/question"
+    ).catch((err) => console.warn("Answer reaction notification error:", err))
 
     return {
       id: reaction.id.toString(),
@@ -94,18 +91,15 @@ export class ReactionService {
       include: { user: { select: { fullName: true } } },
     })
 
-    // Only notify if commenting on partner's answer
-    if (answer.userId !== userId) {
-      const truncated = text.length > 40 ? text.substring(0, 40) + "..." : text
-      await NotificationService.notifyPartner(
-        relationshipId,
-        userId,
-        "Komentar Baru 💬",
-        `Pasanganmu berkomentar: "${truncated}"`,
-        "QUESTION",
-        "/question"
-      ).catch((err) => console.warn("Answer comment notification error:", err))
-    }
+    const truncated = text.length > 40 ? text.substring(0, 40) + "..." : text
+    await NotificationService.notifyPartner(
+      relationshipId,
+      userId,
+      "Komentar Baru 💬",
+      `Pasanganmu berkomentar: "${truncated}"`,
+      "QUESTION",
+      "/question"
+    ).catch((err) => console.warn("Answer comment notification error:", err))
 
     return {
       id: comment.id.toString(),
