@@ -1,15 +1,4 @@
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
-  if (typeof window !== "undefined") {
-    const origin = window.location.origin
-    if (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
-      return "/api/v1"
-    }
-  }
-  return "https://oursky.farrasazhary.my.id/api/v1"
-}
-
-const API_BASE_URL = getApiBaseUrl()
+const API_BASE_URL = "/api/v1"
 
 class ApiClient {
   private getToken(): string | null {
