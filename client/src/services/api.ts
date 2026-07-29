@@ -390,6 +390,47 @@ class ApiClient {
       statusText: string
     }>("/location/distance")
   }
+
+  // Reactions & Comments API
+  async reactToAnswer(answerId: string, emoji: string) {
+    return this.request<{ id: string; answerId: string; emoji: string }>(`/reactions/answer/${answerId}`, {
+      method: "POST",
+      body: JSON.stringify({ emoji }),
+    })
+  }
+
+  async removeAnswerReaction(answerId: string) {
+    return this.request<{ success: boolean }>(`/reactions/answer/${answerId}`, {
+      method: "DELETE",
+    })
+  }
+
+  async commentOnAnswer(answerId: string, text: string) {
+    return this.request<any>(`/reactions/answer/${answerId}/comment`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    })
+  }
+
+  async reactToMemory(memoryId: string, emoji: string) {
+    return this.request<{ id: string; memoryId: string; emoji: string }>(`/reactions/memory/${memoryId}`, {
+      method: "POST",
+      body: JSON.stringify({ emoji }),
+    })
+  }
+
+  async removeMemoryReaction(memoryId: string) {
+    return this.request<{ success: boolean }>(`/reactions/memory/${memoryId}`, {
+      method: "DELETE",
+    })
+  }
+
+  async commentOnMemory(memoryId: string, text: string) {
+    return this.request<any>(`/reactions/memory/${memoryId}/comment`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    })
+  }
 }
 
 export const api = new ApiClient()

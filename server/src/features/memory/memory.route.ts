@@ -27,7 +27,12 @@ export class MemoryService {
     const memories = await prisma.memory.findMany({
       where: { relationshipId },
       include: {
-        media: true
+        media: true,
+        reactions: true,
+        comments: {
+          include: { user: { select: { id: true, fullName: true } } },
+          orderBy: { createdAt: "asc" as const }
+        }
       },
       orderBy: { memoryDate: "desc" }
     })
@@ -77,7 +82,19 @@ export class MemoryService {
         location: m.location,
         photos: m.media.map(media => media.fileUrl),
         isMine,
-        author: isMine ? "Mine" : "Partner"
+        author: isMine ? "Mine" : "Partner",
+        reactions: m.reactions.map(r => ({
+          id: r.id.toString(),
+          userId: r.userId.toString(),
+          emoji: r.emoji
+        })),
+        comments: m.comments.map(c => ({
+          id: c.id.toString(),
+          userId: c.userId.toString(),
+          userName: c.user.fullName,
+          text: c.text,
+          createdAt: c.createdAt
+        }))
       }
     })
   }

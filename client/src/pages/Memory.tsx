@@ -99,6 +99,8 @@ export function Memory() {
             caption: m.description || "Captured moment.",
             isMine,
             authorName,
+            reactions: m.reactions || [],
+            comments: m.comments || [],
           }
         })
         setMemories(formatted)
@@ -457,6 +459,7 @@ export function Memory() {
         isOpen={!!selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
         memory={selectedPhoto}
+        onUpdate={fetchMemories}
       />
     </div>
   )

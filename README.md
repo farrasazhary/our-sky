@@ -39,6 +39,7 @@ Relationships are made of small, meaningful moments. **OurSky** brings couples t
 
 ## 🔥 What's New in v1.1.0-beta
 
+- 💬 **Emoji Reactions & Mini Comments**: Instant 1-tap emoji reactions (❤️ 😍 🥺 😂 🔥 💋) and 200-character mini comments for Question of the Day answers and Memory Album photos, complete with real-time push notifications to your partner.
 - 🗺️ **Couple Location & Real-Time Distance Pass (`/location`)**: Real-time GPS distance calculation using the Haversine formula. Features a Flight Path & Boarding Pass UI design (`OURSKY AIRLINES ✈️ | DIRECT LOVE PASS`) with animated traveling airplane, equal pod widths for 100% lateral symmetry, header update button, and automatic status text ("Kalian terpisah 9.196,7 km" or "Bersama ❤️").
 - 🤖 **Google Gemini 1.5 Flash AI Engine**: Dynamic AI-generated romantic couple questions and date ideas with multi-model fallback cascade and 429 rate limit cooldown protection.
 - ⏰ **WIB Timezone-Aware Midnight Reset**: Automatic daily question reset at 00:00 midnight WIB (`Asia/Jakarta` timezone formatting) eliminating UTC date lag.

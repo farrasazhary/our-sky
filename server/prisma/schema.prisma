@@ -74,6 +74,10 @@ model User {
   notifications          Notification[]
   openWhens              OpenWhen[]
   pushSubscriptions      PushSubscription[]
+  answerReactions        AnswerReaction[]
+  answerComments         AnswerComment[]
+  memoryReactions        MemoryReaction[]
+  memoryComments         MemoryComment[]
 
   @@map("users")
 }
@@ -136,6 +140,8 @@ model Memory {
 
   relationship Relationship  @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   media        MemoryMedia[]
+  reactions    MemoryReaction[]
+  comments     MemoryComment[]
 
   @@index([relationshipId])
   @@index([memoryDate])
@@ -179,6 +185,8 @@ model QuestionAnswer {
   question     Question     @relation(fields: [questionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  reactions    AnswerReaction[]
+  comments     AnswerComment[]
 
   @@unique([questionId, relationshipId, userId])
   @@index([questionId])
@@ -324,4 +332,70 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ==========================================
+// REACTIONS & COMMENTS
+// ==========================================
+
+model AnswerReaction {
+  id        BigInt   @id @default(autoincrement())
+  answerId  BigInt   @map("answer_id")
+  userId    BigInt   @map("user_id")
+  emoji     String   @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  answer QuestionAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([answerId, userId])
+  @@index([answerId])
+  @@index([userId])
+  @@map("answer_reactions")
+}
+
+model AnswerComment {
+  id        BigInt   @id @default(autoincrement())
+  answerId  BigInt   @map("answer_id")
+  userId    BigInt   @map("user_id")
+  text      String   @db.VarChar(200)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  answer QuestionAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([answerId])
+  @@index([userId])
+  @@map("answer_comments")
+}
+
+model MemoryReaction {
+  id        BigInt   @id @default(autoincrement())
+  memoryId  BigInt   @map("memory_id")
+  userId    BigInt   @map("user_id")
+  emoji     String   @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([memoryId, userId])
+  @@index([memoryId])
+  @@index([userId])
+  @@map("memory_reactions")
+}
+
+model MemoryComment {
+  id        BigInt   @id @default(autoincrement())
+  memoryId  BigInt   @map("memory_id")
+  userId    BigInt   @map("user_id")
+  text      String   @db.VarChar(200)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([memoryId])
+  @@index([userId])
+  @@map("memory_comments")
 }

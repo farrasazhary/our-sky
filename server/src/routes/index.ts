@@ -18,6 +18,7 @@ import { authorizeRelationship } from "../middleware/authorize"
 import { asyncHandler } from "../shared/utils/asyncHandler"
 
 import { locationRoutes } from "../features/location/location.route"
+import { reactionRoutes } from "../features/reaction/reaction.route"
 
 const router = Router()
 
@@ -41,5 +42,6 @@ router.use("/constellation", constellationRoutes)
 router.use("/notifications", notificationRoutes)
 router.use("/heartbeats", heartbeatRoutes)
 router.use("/location", locationRoutes)
+router.use("/reactions", reactionRoutes)
 
 export { router }

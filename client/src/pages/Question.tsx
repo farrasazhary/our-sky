@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, Send, Lock, History, MessageCircle, Loader2, Sparkles, RefreshCw } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/services/api"
+import { ReactionBar } from "@/components/ReactionBar"
 
 export function Question() {
   const navigate = useNavigate()
@@ -204,6 +205,16 @@ export function Question() {
                           Your Answer
                         </span>
                         <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">{todayQuestion.myAnswer?.answerText}</p>
+                        
+                        {todayQuestion.myAnswer?.id && (
+                          <ReactionBar
+                            targetId={todayQuestion.myAnswer.id}
+                            type="answer"
+                            reactions={todayQuestion.myAnswer.reactions}
+                            comments={todayQuestion.myAnswer.comments}
+                            onUpdate={loadQuestionData}
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -217,6 +228,16 @@ export function Question() {
                             {todayQuestion.partnerAnswer.partnerName}'s Answer
                           </span>
                           <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">{todayQuestion.partnerAnswer.answerText}</p>
+
+                          {todayQuestion.partnerAnswer?.id && (
+                            <ReactionBar
+                              targetId={todayQuestion.partnerAnswer.id}
+                              type="answer"
+                              reactions={todayQuestion.partnerAnswer.reactions}
+                              comments={todayQuestion.partnerAnswer.comments}
+                              onUpdate={loadQuestionData}
+                            />
+                          )}
                         </CardContent>
                       </Card>
                     ) : (
@@ -262,15 +283,33 @@ export function Question() {
                   
                   <div className="grid grid-cols-1 gap-2 pt-1">
                     {item.myAnswer && (
-                      <div className="bg-primary/5 border border-primary/20 p-2.5 rounded-xl text-xs">
+                      <div className="bg-primary/5 border border-primary/20 p-2.5 rounded-xl text-xs space-y-1">
                         <span className="font-semibold text-primary block text-[10px] uppercase">You</span>
                         <p className="text-text-primary mt-0.5">{item.myAnswer.answerText}</p>
+                        {item.myAnswer.id && (
+                          <ReactionBar
+                            targetId={item.myAnswer.id}
+                            type="answer"
+                            reactions={item.myAnswer.reactions}
+                            comments={item.myAnswer.comments}
+                            onUpdate={loadQuestionData}
+                          />
+                        )}
                       </div>
                     )}
                     {item.partnerAnswer && (
-                      <div className="bg-secondary/5 border border-secondary/20 p-2.5 rounded-xl text-xs">
+                      <div className="bg-secondary/5 border border-secondary/20 p-2.5 rounded-xl text-xs space-y-1">
                         <span className="font-semibold text-secondary block text-[10px] uppercase">{item.partnerAnswer.partnerName}</span>
                         <p className="text-text-primary mt-0.5">{item.partnerAnswer.answerText}</p>
+                        {item.partnerAnswer.id && (
+                          <ReactionBar
+                            targetId={item.partnerAnswer.id}
+                            type="answer"
+                            reactions={item.partnerAnswer.reactions}
+                            comments={item.partnerAnswer.comments}
+                            onUpdate={loadQuestionData}
+                          />
+                        )}
                       </div>
                     )}
                   </div>

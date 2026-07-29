@@ -81,7 +81,12 @@ export class QuestionService {
         relationshipId
       },
       include: {
-        user: { select: { id: true, fullName: true } }
+        user: { select: { id: true, fullName: true } },
+        reactions: true,
+        comments: {
+          include: { user: { select: { id: true, fullName: true } } },
+          orderBy: { createdAt: "asc" as const }
+        }
       }
     })
 
@@ -89,21 +94,33 @@ export class QuestionService {
     const partnerAnswer = answers.find(a => a.userId !== userId)
     const isBothAnswered = answers.length >= 2
 
+    const formatAnswer = (ans: typeof answers[0]) => ({
+      id: ans.id.toString(),
+      answerText: ans.answerText,
+      answeredAt: ans.answeredAt,
+      partnerName: ans.user.fullName,
+      reactions: ans.reactions.map(r => ({
+        id: r.id.toString(),
+        userId: r.userId.toString(),
+        emoji: r.emoji
+      })),
+      comments: ans.comments.map(c => ({
+        id: c.id.toString(),
+        userId: c.userId.toString(),
+        userName: c.user.fullName,
+        text: c.text,
+        createdAt: c.createdAt
+      }))
+    })
+
     return {
       id: question.id.toString(),
       questionText: question.questionText,
       category: question.category,
       isAiGenerated: true,
       dayNumber: dayOfYear,
-      myAnswer: myAnswer ? {
-        answerText: myAnswer.answerText,
-        answeredAt: myAnswer.answeredAt
-      } : null,
-      partnerAnswer: partnerAnswer ? {
-        partnerName: partnerAnswer.user.fullName,
-        answerText: partnerAnswer.answerText,
-        answeredAt: partnerAnswer.answeredAt
-      } : null,
+      myAnswer: myAnswer ? formatAnswer(myAnswer) : null,
+      partnerAnswer: partnerAnswer ? formatAnswer(partnerAnswer) : null,
       isBothAnswered
     }
   }
@@ -225,9 +242,33 @@ export class QuestionService {
       where: { relationshipId },
       include: {
         question: true,
-        user: { select: { id: true, fullName: true } }
+        user: { select: { id: true, fullName: true } },
+        reactions: true,
+        comments: {
+          include: { user: { select: { id: true, fullName: true } } },
+          orderBy: { createdAt: "asc" as const }
+        }
       },
       orderBy: { answeredAt: "desc" }
+    })
+
+    const formatHistoryAns = (ans: typeof answers[0]) => ({
+      id: ans.id.toString(),
+      answerText: ans.answerText,
+      answeredAt: ans.answeredAt,
+      partnerName: ans.user.fullName,
+      reactions: ans.reactions.map(r => ({
+        id: r.id.toString(),
+        userId: r.userId.toString(),
+        emoji: r.emoji
+      })),
+      comments: ans.comments.map(c => ({
+        id: c.id.toString(),
+        userId: c.userId.toString(),
+        userName: c.user.fullName,
+        text: c.text,
+        createdAt: c.createdAt
+      }))
     })
 
     const groupedMap = new Map<string, any>()
@@ -246,16 +287,9 @@ export class QuestionService {
 
       const item = groupedMap.get(qId)
       if (ans.userId === userId) {
-        item.myAnswer = {
-          answerText: ans.answerText,
-          answeredAt: ans.answeredAt
-        }
+        item.myAnswer = formatHistoryAns(ans)
       } else {
-        item.partnerAnswer = {
-          partnerName: ans.user.fullName,
-          answerText: ans.answerText,
-          answeredAt: ans.answeredAt
-        }
+        item.partnerAnswer = formatHistoryAns(ans)
       }
     }
 
