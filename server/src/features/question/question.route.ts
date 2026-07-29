@@ -75,39 +75,54 @@ export class QuestionService {
       })
     }
 
-    const answers = await prisma.questionAnswer.findMany({
-      where: {
-        questionId: question.id,
-        relationshipId
-      },
-      include: {
-        user: { select: { id: true, fullName: true } },
-        reactions: true,
-        comments: {
-          include: { user: { select: { id: true, fullName: true } } },
-          orderBy: { createdAt: "asc" as const }
+    let answers: any[] = []
+    try {
+      answers = await prisma.questionAnswer.findMany({
+        where: {
+          questionId: question.id,
+          relationshipId
+        },
+        include: {
+          user: { select: { id: true, fullName: true } },
+          reactions: true,
+          comments: {
+            include: { user: { select: { id: true, fullName: true } } },
+            orderBy: { createdAt: "asc" as const }
+          }
         }
-      }
-    })
+      })
+    } catch (err) {
+      console.warn("Table answer_reactions not found yet, falling back to basic query:", err)
+      const basicAnswers = await prisma.questionAnswer.findMany({
+        where: {
+          questionId: question.id,
+          relationshipId
+        },
+        include: {
+          user: { select: { id: true, fullName: true } }
+        }
+      })
+      answers = basicAnswers.map(a => ({ ...a, reactions: [], comments: [] }))
+    }
 
     const myAnswer = answers.find(a => a.userId === userId)
     const partnerAnswer = answers.find(a => a.userId !== userId)
     const isBothAnswered = answers.length >= 2
 
-    const formatAnswer = (ans: typeof answers[0]) => ({
+    const formatAnswer = (ans: any) => ({
       id: ans.id.toString(),
       answerText: ans.answerText,
       answeredAt: ans.answeredAt,
-      partnerName: ans.user.fullName,
-      reactions: ans.reactions.map(r => ({
+      partnerName: ans.user?.fullName || "Pasangan",
+      reactions: (ans.reactions || []).map((r: any) => ({
         id: r.id.toString(),
         userId: r.userId.toString(),
         emoji: r.emoji
       })),
-      comments: ans.comments.map(c => ({
+      comments: (ans.comments || []).map((c: any) => ({
         id: c.id.toString(),
         userId: c.userId.toString(),
-        userName: c.user.fullName,
+        userName: c.user?.fullName || "Pasangan",
         text: c.text,
         createdAt: c.createdAt
       }))
@@ -238,34 +253,48 @@ export class QuestionService {
   }
 
   static async getHistory(relationshipId: bigint, userId: bigint) {
-    const answers = await prisma.questionAnswer.findMany({
-      where: { relationshipId },
-      include: {
-        question: true,
-        user: { select: { id: true, fullName: true } },
-        reactions: true,
-        comments: {
-          include: { user: { select: { id: true, fullName: true } } },
-          orderBy: { createdAt: "asc" as const }
-        }
-      },
-      orderBy: { answeredAt: "desc" }
-    })
+    let answers: any[] = []
+    try {
+      answers = await prisma.questionAnswer.findMany({
+        where: { relationshipId },
+        include: {
+          question: true,
+          user: { select: { id: true, fullName: true } },
+          reactions: true,
+          comments: {
+            include: { user: { select: { id: true, fullName: true } } },
+            orderBy: { createdAt: "asc" as const }
+          }
+        },
+        orderBy: { answeredAt: "desc" }
+      })
+    } catch (err) {
+      console.warn("Table answer_reactions not found yet, falling back to basic getHistory:", err)
+      const basicAnswers = await prisma.questionAnswer.findMany({
+        where: { relationshipId },
+        include: {
+          question: true,
+          user: { select: { id: true, fullName: true } }
+        },
+        orderBy: { answeredAt: "desc" }
+      })
+      answers = basicAnswers.map(a => ({ ...a, reactions: [], comments: [] }))
+    }
 
-    const formatHistoryAns = (ans: typeof answers[0]) => ({
+    const formatHistoryAns = (ans: any) => ({
       id: ans.id.toString(),
       answerText: ans.answerText,
       answeredAt: ans.answeredAt,
-      partnerName: ans.user.fullName,
-      reactions: ans.reactions.map(r => ({
+      partnerName: ans.user?.fullName || "Pasangan",
+      reactions: (ans.reactions || []).map((r: any) => ({
         id: r.id.toString(),
         userId: r.userId.toString(),
         emoji: r.emoji
       })),
-      comments: ans.comments.map(c => ({
+      comments: (ans.comments || []).map((c: any) => ({
         id: c.id.toString(),
         userId: c.userId.toString(),
-        userName: c.user.fullName,
+        userName: c.user?.fullName || "Pasangan",
         text: c.text,
         createdAt: c.createdAt
       }))

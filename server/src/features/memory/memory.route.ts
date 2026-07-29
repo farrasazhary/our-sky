@@ -24,18 +24,29 @@ export class MemoryService {
   static async getMemories(relationshipId: bigint, userId: bigint) {
     const userIdStr = userId.toString()
 
-    const memories = await prisma.memory.findMany({
-      where: { relationshipId },
-      include: {
-        media: true,
-        reactions: true,
-        comments: {
-          include: { user: { select: { id: true, fullName: true } } },
-          orderBy: { createdAt: "asc" as const }
-        }
-      },
-      orderBy: { memoryDate: "desc" }
-    })
+    let memories: any[] = []
+    try {
+      memories = await prisma.memory.findMany({
+        where: { relationshipId },
+        include: {
+          media: true,
+          reactions: true,
+          comments: {
+            include: { user: { select: { id: true, fullName: true } } },
+            orderBy: { createdAt: "asc" as const }
+          }
+        },
+        orderBy: { memoryDate: "desc" }
+      })
+    } catch (err) {
+      console.warn("Table memory_reactions not found yet, falling back to basic query:", err)
+      const basicMemories = await prisma.memory.findMany({
+        where: { relationshipId },
+        include: { media: true },
+        orderBy: { memoryDate: "desc" }
+      })
+      memories = basicMemories.map(m => ({ ...m, reactions: [], comments: [] }))
+    }
 
     const events = await prisma.relationshipEvent.findMany({
       where: {
@@ -80,18 +91,18 @@ export class MemoryService {
         description: cleanDescription,
         memoryDate: m.memoryDate,
         location: m.location,
-        photos: m.media.map(media => media.fileUrl),
+        photos: (m.media || []).map((media: any) => media.fileUrl),
         isMine,
         author: isMine ? "Mine" : "Partner",
-        reactions: m.reactions.map(r => ({
+        reactions: (m.reactions || []).map((r: any) => ({
           id: r.id.toString(),
           userId: r.userId.toString(),
           emoji: r.emoji
         })),
-        comments: m.comments.map(c => ({
+        comments: (m.comments || []).map((c: any) => ({
           id: c.id.toString(),
           userId: c.userId.toString(),
-          userName: c.user.fullName,
+          userName: c.user?.fullName || "Pasangan",
           text: c.text,
           createdAt: c.createdAt
         }))
