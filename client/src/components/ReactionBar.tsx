@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle, Send, Loader2 } from "lucide-react"
 import { api } from "@/services/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface Reaction {
   id: string
@@ -40,9 +41,12 @@ export function ReactionBar({
   type,
   reactions = [],
   comments = [],
-  currentUserId,
+  currentUserId: propUserId,
   onUpdate,
 }: ReactionBarProps) {
+  const { user } = useAuth()
+  const effectiveUserId = propUserId || (user?.id ? String(user.id) : "")
+
   const [localReactions, setLocalReactions] = useState<Reaction[]>(reactions)
   const [localComments, setLocalComments] = useState<Comment[]>(comments)
   const [isCommentOpen, setIsCommentOpen] = useState(false)
@@ -50,8 +54,19 @@ export function ReactionBar({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isReacting, setIsReacting] = useState(false)
 
+  // Sync state when props change
+  useEffect(() => {
+    setLocalReactions(reactions)
+  }, [reactions])
+
+  useEffect(() => {
+    setLocalComments(comments)
+  }, [comments])
+
   // Find user's active reaction
-  const myReaction = localReactions.find((r) => r.userId === currentUserId)
+  const myReaction = localReactions.find(
+    (r) => String(r.userId) === String(effectiveUserId)
+  )
 
   const handleToggleEmoji = async (emojiKey: string) => {
     if (isReacting) return
@@ -59,13 +74,15 @@ export function ReactionBar({
 
     const isSameEmoji = myReaction?.emoji === emojiKey
 
-    // Optimistic UI update
+    // Optimistic UI update: strictly 1 reaction per user
     if (isSameEmoji) {
-      setLocalReactions((prev) => prev.filter((r) => r.userId !== currentUserId))
+      setLocalReactions((prev) =>
+        prev.filter((r) => String(r.userId) !== String(effectiveUserId))
+      )
     } else {
       setLocalReactions((prev) => [
-        ...prev.filter((r) => r.userId !== currentUserId),
-        { id: "temp-" + Date.now(), userId: currentUserId || "me", emoji: emojiKey },
+        ...prev.filter((r) => String(r.userId) !== String(effectiveUserId)),
+        { id: "temp-" + Date.now(), userId: effectiveUserId || "me", emoji: emojiKey },
       ])
     }
 
@@ -114,14 +131,16 @@ export function ReactionBar({
         ...prev,
         {
           id: newComment?.id || "temp-" + Date.now(),
-          userId: currentUserId || "me",
-          userName: newComment?.userName || "Saya",
+          userId: effectiveUserId || "me",
+          userName: newComment?.userName || user?.fullName || "Saya",
           text: textToSend,
           createdAt: new Date().toISOString(),
         },
       ])
 
       setCommentText("")
+      // Keep comment box open!
+      setIsCommentOpen(true)
       onUpdate?.()
     } catch (err: any) {
       alert(err.message || "Gagal mengirim komentar.")
@@ -150,8 +169,8 @@ export function ReactionBar({
                 onClick={() => handleToggleEmoji(opt.key)}
                 className={`relative px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all ${
                   isSelected
-                    ? "bg-primary/20 border border-primary/50 text-primary scale-105 shadow-xs"
-                    : "hover:bg-surfaceVariant text-text-secondary"
+                    ? "bg-primary/25 border border-primary/60 text-primary font-bold scale-105 shadow-xs"
+                    : "hover:bg-surfaceVariant text-text-secondary opacity-80 hover:opacity-100"
                 }`}
                 title={opt.key}
               >
