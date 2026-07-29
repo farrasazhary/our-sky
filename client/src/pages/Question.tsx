@@ -18,8 +18,8 @@ export function Question() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRerolling, setIsRerolling] = useState(false)
 
-  const loadQuestionData = async () => {
-    setIsLoading(true)
+  const loadQuestionData = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true)
     try {
       const [qRes, hRes] = await Promise.all([
         api.getTodayQuestion().catch(() => null),
@@ -43,7 +43,7 @@ export function Question() {
     } catch (err) {
       console.warn("Using offline empty question state.")
     } finally {
-      setIsLoading(false)
+      if (showLoading) setIsLoading(false)
     }
   }
 
@@ -212,7 +212,7 @@ export function Question() {
                             type="answer"
                             reactions={todayQuestion.myAnswer.reactions}
                             comments={todayQuestion.myAnswer.comments}
-                            onUpdate={loadQuestionData}
+                            onUpdate={() => loadQuestionData(false)}
                           />
                         )}
                       </CardContent>
@@ -235,7 +235,7 @@ export function Question() {
                               type="answer"
                               reactions={todayQuestion.partnerAnswer.reactions}
                               comments={todayQuestion.partnerAnswer.comments}
-                              onUpdate={loadQuestionData}
+                              onUpdate={() => loadQuestionData(false)}
                             />
                           )}
                         </CardContent>
@@ -292,7 +292,7 @@ export function Question() {
                             type="answer"
                             reactions={item.myAnswer.reactions}
                             comments={item.myAnswer.comments}
-                            onUpdate={loadQuestionData}
+                            onUpdate={() => loadQuestionData(false)}
                           />
                         )}
                       </div>
@@ -307,7 +307,7 @@ export function Question() {
                             type="answer"
                             reactions={item.partnerAnswer.reactions}
                             comments={item.partnerAnswer.comments}
-                            onUpdate={loadQuestionData}
+                            onUpdate={() => loadQuestionData(false)}
                           />
                         )}
                       </div>
