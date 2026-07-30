@@ -3,12 +3,13 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, Send, Lock, History, MessageCircle, Loader2, Sparkles, RefreshCw } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { api } from "@/services/api"
 import { ReactionBar } from "@/components/ReactionBar"
 
 export function Question() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState<"today" | "history">("today")
   const [answered, setAnswered] = useState(false)
   const [answer, setAnswer] = useState("")
@@ -50,6 +51,28 @@ export function Question() {
   useEffect(() => {
     loadQuestionData()
   }, [])
+
+  // Auto deep-link scroll to answerId when arriving from notification
+  useEffect(() => {
+    const targetAnswerId = searchParams.get("answerId")
+    if (targetAnswerId && history.length > 0) {
+      const inHistory = history.some(
+        (h) =>
+          String(h.myAnswer?.id) === String(targetAnswerId) ||
+          String(h.partnerAnswer?.id) === String(targetAnswerId)
+      )
+      if (inHistory) {
+        setViewMode("history")
+      }
+
+      setTimeout(() => {
+        const el = document.getElementById(`ans-${targetAnswerId}`)
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }, 400)
+    }
+  }, [searchParams, history])
 
   const handleRerollQuestion = async () => {
     if (isRerolling || answered) return
@@ -198,7 +221,7 @@ export function Question() {
               ) : (
                 <div className="space-y-4 flex-1">
                   {/* My Answer */}
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} id={todayQuestion.myAnswer?.id ? `ans-${todayQuestion.myAnswer.id}` : undefined}>
                     <Card className="bg-primary/10 border-primary/30 shadow-md">
                       <CardContent className="p-4 space-y-2">
                         <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
@@ -220,7 +243,7 @@ export function Question() {
                   </motion.div>
 
                   {/* Partner's Answer */}
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} id={todayQuestion.partnerAnswer?.id ? `ans-${todayQuestion.partnerAnswer.id}` : undefined}>
                     {todayQuestion.partnerAnswer ? (
                       <Card className="bg-secondary/10 border-secondary/30 shadow-md">
                         <CardContent className="p-4 space-y-2">
@@ -283,7 +306,7 @@ export function Question() {
                   
                   <div className="grid grid-cols-1 gap-2 pt-1">
                     {item.myAnswer && (
-                      <div className="bg-primary/5 border border-primary/20 p-2.5 rounded-xl text-xs space-y-1">
+                      <div id={item.myAnswer.id ? `ans-${item.myAnswer.id}` : undefined} className="bg-primary/5 border border-primary/20 p-2.5 rounded-xl text-xs space-y-1">
                         <span className="font-semibold text-primary block text-[10px] uppercase">You</span>
                         <p className="text-text-primary mt-0.5">{item.myAnswer.answerText}</p>
                         {item.myAnswer.id && (
@@ -298,7 +321,7 @@ export function Question() {
                       </div>
                     )}
                     {item.partnerAnswer && (
-                      <div className="bg-secondary/5 border border-secondary/20 p-2.5 rounded-xl text-xs space-y-1">
+                      <div id={item.partnerAnswer.id ? `ans-${item.partnerAnswer.id}` : undefined} className="bg-secondary/5 border border-secondary/20 p-2.5 rounded-xl text-xs space-y-1">
                         <span className="font-semibold text-secondary block text-[10px] uppercase">{item.partnerAnswer.partnerName}</span>
                         <p className="text-text-primary mt-0.5">{item.partnerAnswer.answerText}</p>
                         {item.partnerAnswer.id && (

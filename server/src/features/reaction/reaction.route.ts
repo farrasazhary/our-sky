@@ -56,7 +56,7 @@ export class ReactionService {
       `Reaksi Baru ${emojiSymbol}`,
       `Pasanganmu memberikan reaksi ${emojiSymbol} pada jawaban Question of the Day!`,
       "QUESTION",
-      "/question"
+      `/question?answerId=${answerIdStr}`
     ).catch((err) => console.warn("Answer reaction notification error:", err))
 
     return {
@@ -98,7 +98,7 @@ export class ReactionService {
       "Komentar Baru 💬",
       `Pasanganmu berkomentar: "${truncated}"`,
       "QUESTION",
-      "/question"
+      `/question?answerId=${answerIdStr}`
     ).catch((err) => console.warn("Answer comment notification error:", err))
 
     return {
@@ -137,7 +137,7 @@ export class ReactionService {
       `Reaksi Foto Baru ${emojiSymbol}`,
       `Pasanganmu memberikan reaksi ${emojiSymbol} pada foto kenangan!`,
       "MEMORY",
-      "/memory"
+      `/memory?memoryId=${memoryIdStr}`
     ).catch((err) => console.warn("Memory reaction notification error:", err))
 
     return {
@@ -179,7 +179,7 @@ export class ReactionService {
       "Komentar Foto 💬",
       `Pasanganmu berkomentar di foto: "${truncated}"`,
       "MEMORY",
-      "/memory"
+      `/memory?memoryId=${memoryIdStr}`
     ).catch((err) => console.warn("Memory comment notification error:", err))
 
     return {

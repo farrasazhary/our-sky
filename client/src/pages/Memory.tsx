@@ -7,6 +7,8 @@ import { AddMemoryModal } from "@/components/modals/AddMemoryModal"
 import { ImageViewerModal } from "@/components/modals/ImageViewerModal"
 import { api } from "@/services/api"
 
+import { useSearchParams } from "react-router-dom"
+
 interface MemoryItem {
   id: string | number
   title: string
@@ -16,6 +18,8 @@ interface MemoryItem {
   caption: string
   isMine: boolean
   authorName: string
+  reactions?: any[]
+  comments?: any[]
 }
 
 function parseLocalDate(dateInput: any): { dateStr: string; dayNum: number } {
@@ -48,6 +52,7 @@ function parseLocalDate(dateInput: any): { dateStr: string; dayNum: number } {
 }
 
 export function Memory() {
+  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState<"calendar" | "gallery">("calendar")
   const [authorFilter, setAuthorFilter] = useState<"all" | "mine" | "partner">("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -104,6 +109,15 @@ export function Memory() {
           }
         })
         setMemories(formatted)
+
+        // Check if memoryId is passed via deep-link
+        const targetMemoryId = searchParams.get("memoryId")
+        if (targetMemoryId) {
+          const target = formatted.find((item: any) => String(item.id) === String(targetMemoryId))
+          if (target) {
+            setSelectedPhoto(target)
+          }
+        }
       }
     } catch (err) {
       console.warn("Using offline empty memory state.")
@@ -115,7 +129,7 @@ export function Memory() {
 
   useEffect(() => {
     fetchMemories()
-  }, [])
+  }, [searchParams])
 
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
