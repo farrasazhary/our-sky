@@ -33,7 +33,7 @@ export class MemoryService {
           reactions: true,
           comments: {
             include: { user: { select: { id: true, fullName: true } } },
-            orderBy: { createdAt: "asc" as const }
+            orderBy: { createdAt: "desc" as const }
           }
         },
         orderBy: { memoryDate: "desc" }

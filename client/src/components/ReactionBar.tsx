@@ -128,7 +128,6 @@ export function ReactionBar({
       }
 
       setLocalComments((prev) => [
-        ...prev,
         {
           id: newComment?.id || "temp-" + Date.now(),
           userId: effectiveUserId || "me",
@@ -136,6 +135,7 @@ export function ReactionBar({
           text: textToSend,
           createdAt: new Date().toISOString(),
         },
+        ...prev,
       ])
 
       setCommentText("")

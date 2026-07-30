@@ -87,7 +87,7 @@ export class QuestionService {
           reactions: true,
           comments: {
             include: { user: { select: { id: true, fullName: true } } },
-            orderBy: { createdAt: "asc" as const }
+            orderBy: { createdAt: "desc" as const }
           }
         }
       })
@@ -263,7 +263,7 @@ export class QuestionService {
           reactions: true,
           comments: {
             include: { user: { select: { id: true, fullName: true } } },
-            orderBy: { createdAt: "asc" as const }
+            orderBy: { createdAt: "desc" as const }
           }
         },
         orderBy: { answeredAt: "desc" }
