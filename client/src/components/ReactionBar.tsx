@@ -209,24 +209,24 @@ export function ReactionBar({
           >
             {/* Comments List */}
             {localComments.length > 0 && (
-              <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-1">
+              <div className="space-y-2 max-h-40 overflow-y-auto no-scrollbar pr-1">
                 {localComments.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-surfaceVariant/60 border border-border/30 p-2 rounded-xl text-xs space-y-0.5"
+                    className="bg-surfaceVariant/50 border border-border/40 p-2.5 px-3 rounded-lg text-xs space-y-1 shadow-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-primary text-[10px]">
+                      <span className="font-bold text-primary text-[11px]">
                         {c.userName || "Pasangan"}
                       </span>
-                      <span className="text-[9px] text-text-tertiary">
+                      <span className="text-[9px] text-text-tertiary font-medium">
                         {new Date(c.createdAt).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
                       </span>
                     </div>
-                    <p className="text-text-primary whitespace-pre-wrap leading-tight">
+                    <p className="text-text-primary whitespace-pre-wrap leading-relaxed">
                       {c.text}
                     </p>
                   </div>
@@ -242,7 +242,7 @@ export function ReactionBar({
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value.slice(0, 200))}
                   placeholder="Tulis komentar manis... (max 200 huruf)"
-                  className="w-full h-8 px-3 pr-10 text-xs bg-surface border border-border/50 rounded-full text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/60"
+                  className="w-full h-9 px-3.5 pr-10 text-xs bg-surface border border-border/50 rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-primary/60 transition-colors"
                   maxLength={200}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-mono text-text-tertiary">
@@ -252,7 +252,7 @@ export function ReactionBar({
               <button
                 type="submit"
                 disabled={!commentText.trim() || isSubmittingComment}
-                className="w-8 h-8 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center disabled:opacity-40 transition-all shrink-0"
+                className="w-9 h-9 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center disabled:opacity-40 transition-all shrink-0 shadow-sm"
               >
                 {isSubmittingComment ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
