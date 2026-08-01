@@ -21,7 +21,6 @@ export class AiService {
 
     try {
       const genAI = new GoogleGenerativeAI(apiKey)
-      // Standard models order: gemini-1.5-flash first
       const modelNames = [
         "gemini-1.5-flash",
         "gemini-2.0-flash",
@@ -55,10 +54,87 @@ export class AiService {
   }
 
   /**
-   * Generates a fresh, deep romantic couple question using Gemini AI or rich 40+ curated pool
+   * Tries Groq AI (Llama 3.3 70B / Mixtral) via OpenAI-compatible REST API
+   */
+  private static async generateWithGroq(prompt: string): Promise<string | null> {
+    const apiKey = process.env.GROQ_API_KEY
+    if (!apiKey) {
+      console.warn("⚠️ [AiService] GROQ_API_KEY is not set in environment.")
+      return null
+    }
+
+    const groqModels = [
+      "llama-3.3-70b-versatile",
+      "llama3-70b-8192",
+      "mixtral-8x7b-32768"
+    ]
+
+    for (const modelName of groqModels) {
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert romantic relationship assistant. Output ONLY valid raw JSON matching requested structure without markdown formatting."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+          })
+        })
+
+        if (!response.ok) {
+          const errText = await response.text()
+          console.warn(`[AiService] Groq model '${modelName}' HTTP ${response.status}:`, errText)
+          continue
+        }
+
+        const data: any = await response.json()
+        const content = data?.choices?.[0]?.message?.content?.trim()
+        if (content) {
+          console.log(`⚡ [Groq AI] Generated content using model '${modelName}'`)
+          return content
+        }
+      } catch (err: any) {
+        console.warn(`[AiService] Groq model '${modelName}' error:`, err?.message || err)
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * Primary Dual-Engine Cascading Router: Gemini AI -> Groq AI Failover
+   */
+  private static async generateContentWithAiCascade(prompt: string): Promise<string | null> {
+    // 1. Try Gemini AI
+    const geminiResult = await this.generateWithGemini(prompt)
+    if (geminiResult) return geminiResult
+
+    // 2. Failover to Groq AI if Gemini is rate limited or unavailable
+    console.log("⚡ [AiService] Gemini unavailable or rate limited. Falling back to Groq AI (Llama 3.3 70B)...")
+    const groqResult = await this.generateWithGroq(prompt)
+    if (groqResult) return groqResult
+
+    return null
+  }
+
+  /**
+   * Generates a fresh, deep romantic couple question using 100% Full AI (Gemini + Groq Backup)
    */
   static async generateRomanticQuestion(): Promise<{ questionText: string; category: string }> {
-    const randomSeed = Math.floor(Math.random() * 10000)
+    const randomSeed = Math.floor(Math.random() * 100000)
     const prompt = `Buatkan 1 pertanyaan hubungan romantis yang unik, mendalam, hangat, dan bermakna untuk pasangan kekasih dalam Bahasa Indonesia (Seed: ${randomSeed}). Pertanyaan harus memicu percakapan positif, hangat, dan emosional.
 Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) dengan struktur berikut:
 {
@@ -66,7 +142,14 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
   "category": "RELATIONSHIP"
 }`
 
-    const responseText = await this.generateWithGemini(prompt)
+    // 1. Try Dual-Engine Cascade (Gemini -> Groq)
+    let responseText = await this.generateContentWithAiCascade(prompt)
+
+    // 2. Direct Groq retry if initial cascade failed
+    if (!responseText) {
+      console.log("⚡ [AiService] Retrying question generation via direct Groq AI...")
+      responseText = await this.generateWithGroq(prompt)
+    }
 
     if (responseText) {
       try {
@@ -80,63 +163,33 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
           }
         }
       } catch (err) {
-        console.warn("[AiService] Failed to parse Gemini question JSON:", err)
+        console.warn("[AiService] Failed to parse AI question JSON:", err)
       }
     }
 
-    // Rich 40+ curated romantic Indonesian questions fallback pool
-    const fallbackQuestions = [
-      "Apa satu momen paling berharga dalam hubungan kita yang paling sering kamu ingat ketika rindu?",
-      "Bagaimana cara terbaik menurutmu untuk saling mendukung saat salah satu dari kita sedang merasa lelah atau cemas?",
-      "Jika kita bisa mengulang satu hari kencan paling berkesan, hari mana yang ingin kamu ulangi dan kenapa?",
-      "Apa kebiasaan kecil dari pasanganmu yang tanpa disadari selalu membuatmu tersenyum sendiri?",
-      "Impian besar apa untuk masa depan kita bersama yang paling ingin kamu wujudkan terlebih dahulu?",
-      "Apa satu kebiasaan kecil dariku yang diam-diam paling kamu sukai?",
-      "Bagaimana kesan pertamamu saat pertama kali kita bertemu?",
-      "Lagu apa yang selalu membuatmu teringat padaku saat mendengarnya?",
-      "Jika besok kita bisa liburan ke mana saja secara gratis, ke mana kamu ingin pergi?",
-      "Apa hal sederhana yang baru saja kubuat yang membuatmu merasa sangat dicintai?",
-      "Seperti apa gambaran kencan akhir pekan yang paling sempurna menurutmu?",
-      "Apa satu hal yang paling kamu syukuri dari hubungan kita saat ini?",
-      "Momen lucu apa tentang kita berdua yang sampai sekarang masih membuatmu tertawa?",
-      "Makanan apa yang paling ingin kamu masak berdua denganku di rumah?",
-      "Bagaimana perasaanmu setiap kali kita berpegangan tangan di tempat umum?",
-      "Film atau serial apa yang menurutmu jalan ceritanya mirip dengan kisah cinta kita?",
-      "Momen spesifik mana saat kamu pertama kali sadar bahwa kamu jatuh cinta padaku?",
-      "Apa satu perhatian kecil yang bisa kubuat hari ini untuk membuat harimu lebih bahagia?",
-      "Jika kamu bisa menggambarkan hubungan kita dalam 3 kata, kata apa saja itu?",
-      "Apa panggilan sayang atau lelucon internal favoritmu tentang kita?",
-      "Bagaimana cara favoritmu untuk menghabiskan malam minggu bersamaku?",
-      "Apa sifat dari diriku yang paling membuatmu merasa aman dan tenang?",
-      "Tempat mana yang sudah pernah kita kunjungi yang paling ingin kamu kunjungi lagi?",
-      "Apa satu hal tentangku yang belum pernah kamu ceritakan ke orang lain?",
-      "Bagaimana perasaanmu saat pertama kali kita saling bertukar pesan dulu?",
-      "Foto berdua kita mana yang paling kamu sukai dan kenapa?",
-      "Apa hal paling romantis yang pernah kita lakukan bersama menurutmu?",
-      "Jika kita buat janji kecil untuk tahun depan, janji apa yang ingin kamu buat?",
-      "Apa hal yang paling kamu rindukan saat kita sedang berjauhan beberapa hari?",
-      "Bagaimana caraku yang paling efektif untuk menenangkanmu saat kamu merasa cemas?",
-      "Kado atau kejutan kecil apa dari pasangan yang paling berkesan untukmu?",
-      "Pelajaran terbaik apa yang kamu dapatkan tentang cinta dari hubungan kita?",
-      "Apa harapan terbesar untuk perjalanan cinta kita ke depannya?",
-      "Kapan momen terakhir kali kamu merasa sangat bangga kepadaku?",
-      "Apa hal baru yang ingin kamu coba lakukan bersama pasanganmu tahun ini?",
-      "Bagaimana perasaanmu saat mendengarkanku menceritakan tentang hariku?",
-      "Apa satu kata yang selalu menggambarkan perasaanmu ketika memelukku?",
-      "Jika hubungan kita dijadikan buku kisah cinta, apa judul buku yang cocok?",
-      "Apa yang membuatmu yakin bahwa kita bisa melewati rintangan bersama?",
-      "Momen sederhana apa di rumah yang menurutmu terasa paling romantis?"
-    ]
+    // Emergency fallback AI attempt with simplified prompt
+    const simpleGroq = await this.generateWithGroq("Buatkan 1 pertanyaan romantis mendalam untuk pasangan kekasih dalam format JSON {\"questionText\": \"...\", \"category\": \"RELATIONSHIP\"}")
+    if (simpleGroq) {
+      try {
+        const cleanJson = simpleGroq.replace(/```json/g, "").replace(/```/g, "").trim()
+        const parsed = JSON.parse(cleanJson)
+        if (parsed.questionText) {
+          return {
+            questionText: parsed.questionText,
+            category: "RELATIONSHIP"
+          }
+        }
+      } catch (e) {}
+    }
 
-    const randomChoice = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
     return {
-      questionText: randomChoice,
+      questionText: "Apa satu momen paling indah yang pernah kita lewati bersama yang selalu membuatmu tersenyum setiap kali mengingatnya?",
       category: "RELATIONSHIP"
     }
   }
 
   /**
-   * Generates a creative, unique date idea using Gemini AI based on category
+   * Generates a creative, unique date idea using 100% Full AI (Gemini + Groq Backup)
    */
   static async generateCustomDateIdea(category: string = "ROMANTIC"): Promise<{
     title: string
@@ -153,7 +206,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
   "estimatedBudget": "estimasi biaya misal Rp 50.000 - Rp 100.000"
 }`
 
-    const responseText = await this.generateWithGemini(prompt)
+    const responseText = await this.generateContentWithAiCascade(prompt)
 
     if (responseText) {
       try {
@@ -169,7 +222,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
           }
         }
       } catch (err) {
-        console.warn("[AiService] Failed to parse Gemini date idea JSON:", err)
+        console.warn("[AiService] Failed to parse AI date idea JSON:", err)
       }
     }
 
