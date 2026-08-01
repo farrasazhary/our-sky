@@ -1,6 +1,21 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { DATE_IDEAS_365 } from "../random-date/dateIdeas365"
 
+const QUESTION_CATEGORIES = [
+  { name: "Nostalgia & Kenangan", tone: "Lucu & Hangat", focus: "Kisah awal kenalan, chat pertama, first date, momen konyol atau canggung di awal hubungan." },
+  { name: "Masa Depan & Impian", tone: "Inspiratif & Mendalam", focus: "Rencana masa depan, rumah impian, petualangan berdua, tujuan hidup bersama." },
+  { name: "Humor & Konyol", tone: "Ringan & Santai", focus: "Kebiasaan aneh pasangan, momen paling konyol, lelucon internal, hal lucu yang bikin ngakak." },
+  { name: "Apresiasi & Perhatian", tone: "Emosional & Manis", focus: "Perhatian kecil tak terduga, rasa syukur, hal sederhana yang membuat merasa sangat dicintai." },
+  { name: "Kepribadian & Sifat", tone: "Reflektif & Kagum", focus: "Sifat pasangan yang paling bikin kagum, perubahan positif setelah pacaran, daya tarik utama." },
+  { name: "Petualangan & Liburan", tone: "Seru & Antusias", focus: "Destinasi liburan impian, gaya travel berdua, petualangan tak terlupakan." },
+  { name: "Musik & Pop Culture", tone: "Estetik & Santai", focus: "Lagu kenangan, playlist bersama, film/serial yang jalan ceritanya mirip kisah cinta kalian." },
+  { name: "Dukungan & Emosi", tone: "Menenangkan & Hangat", focus: "Cara saling menenangkan saat cemas/lelah, rasa aman saat bersama, saling menguatkan." },
+  { name: "Pengandaian (What If?)", tone: "Kreatif & Unik", focus: "Skenario pengandaian seru (misal jika terdampar di pulau, jika bisa time travel, dll)." },
+  { name: "Kehangatan Rumah", tone: "Intim & Nyaman", focus: "Kencan sederhana di rumah, masak bareng, nonton film malam minggu, kebiasaan sebelum tidur." },
+  { name: "Komunikasi & Pemahaman", tone: "Mendalam & Jujur", focus: "Hal baru yang disadari dari pasangan, cara komunikasi impian, bahasa cinta favorit." },
+  { name: "Rahasia & Pengakuan Manis", tone: "Spesial & Intim", focus: "Pengakuan manis yang belum pernah diucapkan, rahasia kecil yang menggemaskan." }
+]
+
 export class AiService {
   private static last429Time = 0
 
@@ -89,7 +104,7 @@ export class AiService {
                 content: prompt
               }
             ],
-            temperature: 0.7,
+            temperature: 0.8,
             response_format: { type: "json_object" }
           })
         })
@@ -131,15 +146,28 @@ export class AiService {
   }
 
   /**
-   * Generates a fresh, deep romantic couple question using 100% Full AI (Gemini + Groq Backup)
+   * Generates a fresh, highly diverse romantic couple question using 12 Category Rotation & Dual AI
    */
   static async generateRomanticQuestion(): Promise<{ questionText: string; category: string }> {
+    const selectedCategory = QUESTION_CATEGORIES[Math.floor(Math.random() * QUESTION_CATEGORIES.length)]
     const randomSeed = Math.floor(Math.random() * 100000)
-    const prompt = `Buatkan 1 pertanyaan hubungan romantis yang unik, mendalam, hangat, dan bermakna untuk pasangan kekasih dalam Bahasa Indonesia (Seed: ${randomSeed}). Pertanyaan harus memicu percakapan positif, hangat, dan emosional.
+
+    const prompt = `Buatkan 1 pertanyaan hubungan pasangan yang SANGAT SPESIFIK, UNIK, dan SEGAR berdasarkan fokus tema berikut:
+
+KATEGORI TEMA: ${selectedCategory.name}
+SUASANA/NADA: ${selectedCategory.tone}
+FOKUS TEMA: ${selectedCategory.focus}
+RANDOM SEED: ${randomSeed}
+
+INSTRUKSI PENTING:
+- JANGAN buat pertanyaan generik pasaran seperti 'momen paling indah' atau 'hal yang kamu syukuri'.
+- Buat pertanyaan yang kreatif, seru, dan spesifik sesuai fokus tema di atas!
+- Gunakan Bahasa Indonesia yang hangat, alami, dan komunikatif untuk pasangan kekasih.
+
 Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) dengan struktur berikut:
 {
-  "questionText": "teks pertanyaan disini",
-  "category": "RELATIONSHIP"
+  "questionText": "teks pertanyaan spesifik disini",
+  "category": "${selectedCategory.name}"
 }`
 
     // 1. Try Dual-Engine Cascade (Gemini -> Groq)
@@ -159,7 +187,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
         if (parsed.questionText) {
           return {
             questionText: parsed.questionText,
-            category: parsed.category || "RELATIONSHIP"
+            category: parsed.category || selectedCategory.name
           }
         }
       } catch (err) {
@@ -167,24 +195,9 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
       }
     }
 
-    // Emergency fallback AI attempt with simplified prompt
-    const simpleGroq = await this.generateWithGroq("Buatkan 1 pertanyaan romantis mendalam untuk pasangan kekasih dalam format JSON {\"questionText\": \"...\", \"category\": \"RELATIONSHIP\"}")
-    if (simpleGroq) {
-      try {
-        const cleanJson = simpleGroq.replace(/```json/g, "").replace(/```/g, "").trim()
-        const parsed = JSON.parse(cleanJson)
-        if (parsed.questionText) {
-          return {
-            questionText: parsed.questionText,
-            category: "RELATIONSHIP"
-          }
-        }
-      } catch (e) {}
-    }
-
     return {
-      questionText: "Apa satu momen paling indah yang pernah kita lewati bersama yang selalu membuatmu tersenyum setiap kali mengingatnya?",
-      category: "RELATIONSHIP"
+      questionText: "Jika hubungan kita dijadikan judul album musik, judul lagu apa yang paling menggambarkan kisah cinta kita?",
+      category: "Musik & Pop Culture"
     }
   }
 
