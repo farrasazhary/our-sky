@@ -152,20 +152,20 @@ export class AiService {
     const selectedCategory = QUESTION_CATEGORIES[Math.floor(Math.random() * QUESTION_CATEGORIES.length)]
     const randomSeed = Math.floor(Math.random() * 100000)
 
-    const prompt = `Buatkan 1 pertanyaan pasangan yang RINGKAS, SANTAI, dan SANGAT MUDAH DIPAHAMI berdasarkan tema berikut:
+    const prompt = `Buatkan 1 pertanyaan pasangan yang HANGAT, BERKESAN, dan ALAMI berdasarkan tema berikut:
 
 KATEGORI TEMA: ${selectedCategory.name}
 FOKUS TEMA: ${selectedCategory.focus}
 RANDOM SEED: ${randomSeed}
 
-INSTRUKSI WAJIB:
-1. PANJANG PERTANYAAN: Harus PENDEK & RINGKAS (HANYA 1 kalimat pendek, maksimal 12-18 kata). DILARANG membuat pertanyaan yang terlalu panjang atau berbelit-belit!
-2. BAHASA: Gunakan Bahasa Indonesia santai sehari-hari yang hangat, langsung, dan sangat mudah dipahami. Hindari bahasa puitis berlebihan atau kata-kata yang kaku!
-3. ISI: Pertanyaan harus seru, spesifik, dan memicu percakapan asyik antar pasangan.
+INSTRUKSI KESEIMBANGAN (SWEET SPOT):
+1. EMOSI & KEDALAMAN: Pertanyaan harus terasa hangat, menyentuh perasaan, dan memicu percakapan romantis/asyik (emosinya dapet & bermakna).
+2. KEJELASAN & PANJANG: Gunakan 1-2 kalimat alami (~15 sampai 25 kata). Jangan terlalu singkat dingin, dan jangan terlalu panjang berbelit-belit.
+3. BAHASA: Gunakan Bahasa Indonesia sehari-hari yang hangat, akrab, dan sangat mudah dipahami oleh pasangan kekasih.
 
 Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) dengan struktur berikut:
 {
-  "questionText": "teks pertanyaan pendek disini",
+  "questionText": "teks pertanyaan hangat disini",
   "category": "${selectedCategory.name}"
 }`
 
