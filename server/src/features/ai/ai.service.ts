@@ -8,7 +8,6 @@ const QUESTION_CATEGORIES = [
   { name: "Apresiasi & Perhatian", tone: "Emosional & Manis", focus: "Perhatian kecil tak terduga, rasa syukur, hal sederhana yang membuat merasa sangat dicintai." },
   { name: "Kepribadian & Sifat", tone: "Reflektif & Kagum", focus: "Sifat pasangan yang paling bikin kagum, perubahan positif setelah pacaran, daya tarik utama." },
   { name: "Petualangan & Liburan", tone: "Seru & Antusias", focus: "Destinasi liburan impian, gaya travel berdua, petualangan tak terlupakan." },
-  { name: "Musik & Pop Culture", tone: "Estetik & Santai", focus: "Lagu kenangan, playlist bersama, film/serial yang jalan ceritanya mirip kisah cinta kalian." },
   { name: "Dukungan & Emosi", tone: "Menenangkan & Hangat", focus: "Cara saling menenangkan saat cemas/lelah, rasa aman saat bersama, saling menguatkan." },
   { name: "Pengandaian (What If?)", tone: "Kreatif & Unik", focus: "Skenario pengandaian seru (misal jika terdampar di pulau, jika bisa time travel, dll)." },
   { name: "Kehangatan Rumah", tone: "Intim & Nyaman", focus: "Kencan sederhana di rumah, masak bareng, nonton film malam minggu, kebiasaan sebelum tidur." },
@@ -37,9 +36,11 @@ export class AiService {
     try {
       const genAI = new GoogleGenerativeAI(apiKey)
       const modelNames = [
+        "gemini-1.5-flash-latest",
         "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
         "gemini-2.0-flash",
-        "gemini-1.5-pro",
+        "gemini-1.5-pro-latest",
         "gemini-pro"
       ]
 
