@@ -8,7 +8,7 @@ const QUESTION_CATEGORIES = [
   { name: "Apresiasi & Perhatian", tone: "Emosional & Manis", focus: "Perhatian kecil tak terduga, rasa syukur, hal sederhana yang membuat merasa sangat dicintai." },
   { name: "Kepribadian & Sifat", tone: "Reflektif & Kagum", focus: "Sifat pasangan yang paling bikin kagum, perubahan positif setelah pacaran, daya tarik utama." },
   { name: "Petualangan & Liburan", tone: "Seru & Antusias", focus: "Destinasi liburan impian, gaya travel berdua, petualangan tak terlupakan." },
-  { name: "Musik & Pop Culture", tone: "Estetik & Santai", focus: "Lagu kenangan, playlist bersama, film/serial yang jalan ceritanya mirip kisah cinta kalian." },
+  { name: "Kuliner & Kencan Makanan", tone: "Manis & Lezat", focus: "Makanan favorit berdua, jajanan kenangan saat kencan, tempat makan impian, masak makanan bareng." },
   { name: "Dukungan & Emosi", tone: "Menenangkan & Hangat", focus: "Cara saling menenangkan saat cemas/lelah, rasa aman saat bersama, saling menguatkan." },
   { name: "Pengandaian (What If?)", tone: "Kreatif & Unik", focus: "Skenario pengandaian seru (misal jika terdampar di pulau, jika bisa time travel, dll)." },
   { name: "Kehangatan Rumah", tone: "Intim & Nyaman", focus: "Kencan sederhana di rumah, masak bareng, nonton film malam minggu, kebiasaan sebelum tidur." },
@@ -181,8 +181,8 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
     }
 
     return {
-      questionText: "Jika hubungan kita dijadikan judul album musik, judul lagu apa yang paling menggambarkan kisah cinta kita?",
-      category: "Musik & Pop Culture"
+      questionText: "Makanan atau jajanan apa yang paling ngingetin kamu sama momen kencan manis kita?",
+      category: "Kuliner & Kencan Makanan"
     }
   }
 
