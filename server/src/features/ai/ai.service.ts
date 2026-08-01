@@ -8,6 +8,7 @@ const QUESTION_CATEGORIES = [
   { name: "Apresiasi & Perhatian", tone: "Emosional & Manis", focus: "Perhatian kecil tak terduga, rasa syukur, hal sederhana yang membuat merasa sangat dicintai." },
   { name: "Kepribadian & Sifat", tone: "Reflektif & Kagum", focus: "Sifat pasangan yang paling bikin kagum, perubahan positif setelah pacaran, daya tarik utama." },
   { name: "Petualangan & Liburan", tone: "Seru & Antusias", focus: "Destinasi liburan impian, gaya travel berdua, petualangan tak terlupakan." },
+  { name: "Musik & Pop Culture", tone: "Estetik & Santai", focus: "Lagu kenangan, playlist bersama, film/serial yang jalan ceritanya mirip kisah cinta kalian." },
   { name: "Dukungan & Emosi", tone: "Menenangkan & Hangat", focus: "Cara saling menenangkan saat cemas/lelah, rasa aman saat bersama, saling menguatkan." },
   { name: "Pengandaian (What If?)", tone: "Kreatif & Unik", focus: "Skenario pengandaian seru (misal jika terdampar di pulau, jika bisa time travel, dll)." },
   { name: "Kehangatan Rumah", tone: "Intim & Nyaman", focus: "Kencan sederhana di rumah, masak bareng, nonton film malam minggu, kebiasaan sebelum tidur." },
@@ -17,57 +18,6 @@ const QUESTION_CATEGORIES = [
 
 export class AiService {
   private static last429Time = 0
-
-  /**
-   * Tries Google Generative AI with valid model names & 15s cooldown protection
-   */
-  private static async generateWithGemini(prompt: string): Promise<string | null> {
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
-      console.warn("⚠️ [AiService] GEMINI_API_KEY is not set in environment.")
-      return null
-    }
-
-    // Cooldown check (15 seconds)
-    if (Date.now() - this.last429Time < 15000) {
-      return null
-    }
-
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const modelNames = [
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-2.0-flash",
-        "gemini-1.5-pro-latest",
-        "gemini-pro"
-      ]
-
-      for (const modelName of modelNames) {
-        try {
-          const model = genAI.getGenerativeModel({ model: modelName })
-          const result = await model.generateContent(prompt)
-          const text = result.response.text().trim()
-          if (text) {
-            console.log(`🤖 [Gemini AI] Generated content using model '${modelName}'`)
-            return text
-          }
-        } catch (err: any) {
-          const errMsg = err?.message || String(err)
-          console.warn(`[AiService] Model '${modelName}' failed:`, errMsg)
-          if (errMsg.includes("429") || errMsg.includes("Quota")) {
-            this.last429Time = Date.now()
-            break
-          }
-        }
-      }
-    } catch (globalErr: any) {
-      console.warn("[AiService] Global Gemini execution error:", globalErr?.message || globalErr)
-    }
-
-    return null
-  }
 
   /**
    * Tries Groq AI (Llama 3.3 70B / Mixtral) via OpenAI-compatible REST API
@@ -111,8 +61,6 @@ export class AiService {
         })
 
         if (!response.ok) {
-          const errText = await response.text()
-          console.warn(`[AiService] Groq model '${modelName}' HTTP ${response.status}:`, errText)
           continue
         }
 
@@ -123,7 +71,7 @@ export class AiService {
           return content
         }
       } catch (err: any) {
-        console.warn(`[AiService] Groq model '${modelName}' error:`, err?.message || err)
+        // Silent catch for secondary failover
       }
     }
 
@@ -131,17 +79,62 @@ export class AiService {
   }
 
   /**
-   * Primary Dual-Engine Cascading Router: Gemini AI -> Groq AI Failover
+   * Tries Google Generative AI with valid model names & 15s cooldown protection
+   */
+  private static async generateWithGemini(prompt: string): Promise<string | null> {
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) {
+      return null
+    }
+
+    // Cooldown check (15 seconds)
+    if (Date.now() - this.last429Time < 15000) {
+      return null
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const modelNames = [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-pro"
+      ]
+
+      for (const modelName of modelNames) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName })
+          const result = await model.generateContent(prompt)
+          const text = result.response.text().trim()
+          if (text) {
+            console.log(`🤖 [Gemini AI] Generated content using model '${modelName}'`)
+            return text
+          }
+        } catch (err: any) {
+          const errMsg = err?.message || String(err)
+          if (errMsg.includes("429") || errMsg.includes("Quota")) {
+            this.last429Time = Date.now()
+            break
+          }
+        }
+      }
+    } catch (globalErr: any) {}
+
+    return null
+  }
+
+  /**
+   * Primary Dual-Engine Cascading Router: Groq AI (Primary) -> Gemini AI (Backup)
    */
   private static async generateContentWithAiCascade(prompt: string): Promise<string | null> {
-    // 1. Try Gemini AI
-    const geminiResult = await this.generateWithGemini(prompt)
-    if (geminiResult) return geminiResult
-
-    // 2. Failover to Groq AI if Gemini is rate limited or unavailable
-    console.log("⚡ [AiService] Gemini unavailable or rate limited. Falling back to Groq AI (Llama 3.3 70B)...")
+    // 1. Try Groq AI (Primary Engine - Ultra Fast & High Daily Quotas)
     const groqResult = await this.generateWithGroq(prompt)
     if (groqResult) return groqResult
+
+    // 2. Failover to Gemini AI if Groq AI is unavailable
+    console.log("🤖 [AiService] Groq unavailable. Falling back to Gemini AI...")
+    const geminiResult = await this.generateWithGemini(prompt)
+    if (geminiResult) return geminiResult
 
     return null
   }
@@ -170,14 +163,8 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
   "category": "${selectedCategory.name}"
 }`
 
-    // 1. Try Dual-Engine Cascade (Gemini -> Groq)
+    // 1. Try Dual-Engine Cascade (Groq -> Gemini)
     let responseText = await this.generateContentWithAiCascade(prompt)
-
-    // 2. Direct Groq retry if initial cascade failed
-    if (!responseText) {
-      console.log("⚡ [AiService] Retrying question generation via direct Groq AI...")
-      responseText = await this.generateWithGroq(prompt)
-    }
 
     if (responseText) {
       try {
@@ -190,9 +177,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
             category: parsed.category || selectedCategory.name
           }
         }
-      } catch (err) {
-        console.warn("[AiService] Failed to parse AI question JSON:", err)
-      }
+      } catch (err) {}
     }
 
     return {
@@ -202,7 +187,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
   }
 
   /**
-   * Generates a creative, unique date idea using 100% Full AI (Gemini + Groq Backup)
+   * Generates a creative, unique date idea using 100% Full AI (Groq + Gemini Backup)
    */
   static async generateCustomDateIdea(category: string = "ROMANTIC"): Promise<{
     title: string
@@ -234,9 +219,7 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
             estimatedBudget: parsed.estimatedBudget || "Terjangkau"
           }
         }
-      } catch (err) {
-        console.warn("[AiService] Failed to parse AI date idea JSON:", err)
-      }
+      } catch (err) {}
     }
 
     // High quality fallback using 365 Date Ideas pool
