@@ -152,21 +152,20 @@ export class AiService {
     const selectedCategory = QUESTION_CATEGORIES[Math.floor(Math.random() * QUESTION_CATEGORIES.length)]
     const randomSeed = Math.floor(Math.random() * 100000)
 
-    const prompt = `Buatkan 1 pertanyaan hubungan pasangan yang SANGAT SPESIFIK, UNIK, dan SEGAR berdasarkan fokus tema berikut:
+    const prompt = `Buatkan 1 pertanyaan pasangan yang RINGKAS, SANTAI, dan SANGAT MUDAH DIPAHAMI berdasarkan tema berikut:
 
 KATEGORI TEMA: ${selectedCategory.name}
-SUASANA/NADA: ${selectedCategory.tone}
 FOKUS TEMA: ${selectedCategory.focus}
 RANDOM SEED: ${randomSeed}
 
-INSTRUKSI PENTING:
-- JANGAN buat pertanyaan generik pasaran seperti 'momen paling indah' atau 'hal yang kamu syukuri'.
-- Buat pertanyaan yang kreatif, seru, dan spesifik sesuai fokus tema di atas!
-- Gunakan Bahasa Indonesia yang hangat, alami, dan komunikatif untuk pasangan kekasih.
+INSTRUKSI WAJIB:
+1. PANJANG PERTANYAAN: Harus PENDEK & RINGKAS (HANYA 1 kalimat pendek, maksimal 12-18 kata). DILARANG membuat pertanyaan yang terlalu panjang atau berbelit-belit!
+2. BAHASA: Gunakan Bahasa Indonesia santai sehari-hari yang hangat, langsung, dan sangat mudah dipahami. Hindari bahasa puitis berlebihan atau kata-kata yang kaku!
+3. ISI: Pertanyaan harus seru, spesifik, dan memicu percakapan asyik antar pasangan.
 
 Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) dengan struktur berikut:
 {
-  "questionText": "teks pertanyaan spesifik disini",
+  "questionText": "teks pertanyaan pendek disini",
   "category": "${selectedCategory.name}"
 }`
 
