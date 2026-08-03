@@ -180,9 +180,24 @@ Kembalikan HANYA string JSON murni tanpa format markdown codeblock (\`\`\`json) 
       } catch (err) {}
     }
 
+    // Rich fallback pool in case AI services are unreachable on VPS
+    const fallbackPool = [
+      "Makanan atau jajanan apa yang paling ngingetin kamu sama momen kencan manis kita?",
+      "Apa satu momen paling berharga dalam hubungan kita yang paling sering kamu ingat saat rindu?",
+      "Kebiasaan kecil apa dariku yang tanpa kamu sadari selalu bikin kamu tersenyum sendiri?",
+      "Impian besar apa untuk masa depan kita berdua yang paling ingin kamu wujudkan terlebih dahulu?",
+      "Momen konyol apa tentang kita yang sampai sekarang masih bikin kamu ketawa kalau ingat?",
+      "Apa satu perhatian kecil dari pasangan yang paling bikin kamu merasa sangat dicintai?",
+      "Kalau besok kita bisa liburan gratis ke mana saja berdua, kamu ingin pergi ke mana?",
+      "Apa hal paling romantis yang pernah kita lakukan bersama menurut sudut pandangmu?",
+      "Bagaimana perasaanmu saat pertama kali kita saling bertukar pesan dulu?",
+      "Sifat apa dari diriku yang paling membuatmu merasa aman, tenang, dan dilindungi?"
+    ]
+    const randomFallback = fallbackPool[Math.floor(Math.random() * fallbackPool.length)]
+
     return {
-      questionText: "Makanan atau jajanan apa yang paling ngingetin kamu sama momen kencan manis kita?",
-      category: "Kuliner & Kencan Makanan"
+      questionText: randomFallback,
+      category: selectedCategory.name
     }
   }
 
