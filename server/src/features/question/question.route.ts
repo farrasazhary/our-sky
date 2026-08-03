@@ -154,8 +154,8 @@ export class QuestionService {
           }
         })
 
-        if (existingAnswersCount >= 2) {
-          throw new AppError("Pertanyaan yang sudah selesai dijawab berdua tidak dapat diganti.", 400)
+        if (existingAnswersCount >= 1) {
+          throw new AppError("Pertanyaan tidak dapat diganti karena salah satu pasangan sudah mengisi jawaban.", 400)
         }
       } catch (e: any) {
         if (e instanceof AppError) throw e
